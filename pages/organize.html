@@ -1,0 +1,39 @@
+<div class="page-head">
+  <h1 class="page-title">整理分類</h1>
+</div>
+
+<div class="cat-legend" id="catLegend"></div>
+
+<div class="manage-layout" id="manageLayout">
+  <div class="preview-panel">
+    <div id="previewWrap"></div>
+  </div>
+
+  <div class="thumb-sidebar">
+    <div class="apply-box">
+      <button class="export-btn" id="applyBtn">套用整理</button>
+      <button class="ghost-btn wide" id="exportBtn" hidden>打包下載 .zip</button>
+      <div class="apply-hint" id="applyHint"></div>
+      <div class="apply-result" id="applyResult" hidden></div>
+    </div>
+
+    <div class="toolbar compact">
+      <div class="control-group">
+        <label>每排</label>
+        <input type="range" id="mgmtColSlider" min="2" max="6" value="3">
+        <span class="col-count" id="mgmtColCount">3</span>
+      </div>
+      <label class="check">
+        <input type="checkbox" id="hideDoneChk"> 只看未分類
+      </label>
+      <div class="photo-count" id="mgmtPhotoCount">—</div>
+    </div>
+
+    <div id="manageGrid" class="manage-grid"></div>
+    <div id="managePagination" class="pagination"></div>
+    <div id="manageEmpty" class="empty-state">
+      <div class="glyph">◎</div>
+      <p>尚未載入照片</p>
+    </div>
+  </div>
+</div>

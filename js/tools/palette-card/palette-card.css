@@ -1,0 +1,104 @@
+/* js/tools/palette-card/palette-card.css — 照片色卡明信片。 */
+
+/* ---------- 放照片的地方 ---------- */
+
+/* 拖到工具上時整塊亮起來, 讓人知道放開會有事發生。 */
+.is-dropping .tool-stage { border-color: var(--primary); }
+
+.pc-background-picker .tool-seg {
+  width: 100%;
+  padding-inline: 2px;
+  line-height: 1.5;
+  text-align: center;
+  writing-mode: horizontal-tb;
+}
+
+/* ---------- 照片區 ---------- */
+
+/* canvas 的像素尺寸就是輸出尺寸, 這裡只是把它縮起來看。 */
+.pc-canvas {
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+
+/* 版面見 .tool-stage > .stage-fill（tools.css）: 這一層要絕對定位、用 flex 置中,
+   裡面兩張 canvas 的 max-height: 100% 才有確定的高度可以依據。 */
+.pc-frame {
+  position: absolute;
+  inset: var(--stage-pad, 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+}
+.pc-frame[hidden] { display: none; }
+
+/*
+ * 兩張 canvas 必須算出一模一樣的大小, 吸附線才會剛好疊在卡片上。
+ * 它們的像素尺寸相同（JS 保證）, 所以只要給同一組限制, 結果就會相同 ——
+ * 比讓外框 fit-content 再讓線 inset:0 可靠, 那樣會變成循環依賴。
+ */
+.pc-canvas,
+.pc-guides {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+/* 吸附線畫在另一層, 匯出的只有卡片那一張。
+   兩張的像素尺寸與上限都一樣, 所以算出來的大小一定相同, 疊上去剛好對齊。 */
+.pc-guides {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* touch-action: none 才收得到觸控的拖曳, 否則瀏覽器會把它當成捲動。 */
+.pc-canvas {
+  cursor: move;
+  touch-action: none;
+}
+.pc-canvas.is-over-panel { cursor: grab; }
+.pc-canvas.is-dragging { cursor: grabbing; }
+
+/* ---------- 色碼 ---------- */
+
+.pc-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-height: 28px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.pc-chip { flex: 0 0 auto; }
+
+.pc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 5px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg-alt);
+  font-family: var(--font-mono);
+  font-size: var(--text-supporting);
+  color: var(--text);
+  cursor: pointer;
+}
+.pc-chip:hover { border-color: var(--border); }
+.pc-chip:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.pc-chip-dot {
+  width: 18px;
+  height: 18px;
+  /* 圓角 5px < 18/3。 */
+  border-radius: 5px;
+  /* 淺色圓在深底上要有一圈邊才看得出邊界。 */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}

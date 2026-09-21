@@ -12,7 +12,7 @@
    ============================================================ */
 const PMLibrary = (function () {
 
-    const IMAGE_RE = /\.(jpe?g|tiff?)$/i;
+    const IMAGE_RE = /\.(jpe?g|tiff?|heic|heif)$/i;
     const MAX_THUMBS = 900;   // 同時保留的縮圖 objectURL 數量
     const MAX_FULL = 10;      // 同時保留的原圖 objectURL 數量
     const MAX_DEPTH = 6;      // 掃描子資料夾的最大深度
@@ -135,7 +135,8 @@ const PMLibrary = (function () {
 
     /* ---------- files 模式 ---------- */
     function addFiles(files) {
-        const accepted = Array.from(files || []).filter(f => IMAGE_RE.test(f.name) || /image\/(jpeg|tiff)/.test(f.type));
+        const accepted = Array.from(files || []).filter(f =>
+            IMAGE_RE.test(f.name) || /image\/(jpeg|tiff|heic|heif)/i.test(f.type));
         if (!accepted.length) return [];
         if (lib.mode !== 'files') {
             clear();
@@ -163,7 +164,8 @@ const PMLibrary = (function () {
 
     /* ---------- 縮圖 ---------- */
     async function makeThumbBlob(file) {
-        const bmp = await createImageBitmap(file, { imageOrientation: 'none', resizeWidth: 480, resizeQuality: 'medium' });
+        const bmp = await PMImage.decodeBitmap(file,
+            { imageOrientation: 'none', resizeWidth: 480, resizeQuality: 'medium' });
         const canvas = document.createElement('canvas');
         canvas.width = bmp.width;
         canvas.height = bmp.height;
@@ -273,7 +275,8 @@ const PMLibrary = (function () {
             return cached.url;
         }
         const file = await getFile(photo);
-        const url = URL.createObjectURL(file);
+        const viewBlob = await PMImage.toBrowserBlob(file);
+        const url = URL.createObjectURL(viewBlob);
         fullLRU.set(photo.id, { photo, url });
         while (fullLRU.size > MAX_FULL) {
             const oldestId = fullLRU.keys().next().value;

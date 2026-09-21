@@ -250,7 +250,8 @@ const PMExif = (function () {
                 img.style.width = 'auto';
                 img.style.height = 'auto';
                 img.style.maxWidth = '100%';
-                img.style.maxHeight = '64vh';
+                // 交給外框決定能佔多高（預覽面板會自己撐滿剩下的空間）。
+                img.style.maxHeight = '100%';
             }
         } else {
             img.style.transform = (ORIENTATION_TRANSFORM[o] || '') + (needsAxisSwap ? ' scale(1.35)' : '');
