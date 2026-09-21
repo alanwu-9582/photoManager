@@ -144,15 +144,16 @@ function spiral(w, h, variant) {
 
   for (const { d, sq } of cuts) {
     const s = sq.s;
-    // 每段弧都是以正方形的某個角為圓心, 連接相鄰兩角。
+    // 每段都使用同一個順時針掃掠方向，讓相鄰圓弧不只共用端點，
+    // 切線也保持連續，形成由畫面外圈一路捲入焦點的黃金螺旋。
     const corner = {
-      0: [[sq.x, sq.y + s], [sq.x + s, sq.y]],           // 圓心左上: 左下 → 右上
-      1: [[sq.x, sq.y], [sq.x + s, sq.y + s]],           // 圓心右上: 左上 → 右下
-      2: [[sq.x + s, sq.y], [sq.x, sq.y + s]],           // 圓心右下: 右上 → 左下
-      3: [[sq.x + s, sq.y + s], [sq.x, sq.y]],           // 圓心左下: 右下 → 左上
+      0: [[sq.x, sq.y + s], [sq.x + s, sq.y]],           // 圓心右下: 左下 → 右上
+      1: [[sq.x, sq.y], [sq.x + s, sq.y + s]],           // 圓心左下: 左上 → 右下
+      2: [[sq.x + s, sq.y], [sq.x, sq.y + s]],           // 圓心左上: 右上 → 左下
+      3: [[sq.x + s, sq.y + s], [sq.x, sq.y]],           // 圓心右上: 右下 → 左上
     }[d];
     if (!start) start = corner[0];
-    arcs.push(`A ${s.toFixed(2)} ${s.toFixed(2)} 0 0 0 ${corner[1][0].toFixed(2)} ${corner[1][1].toFixed(2)}`);
+    arcs.push(`A ${s.toFixed(2)} ${s.toFixed(2)} 0 0 1 ${corner[1][0].toFixed(2)} ${corner[1][1].toFixed(2)}`);
   }
 
   if (!start) return "";
