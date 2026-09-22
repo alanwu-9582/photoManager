@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+    href="https://fonts.googleapis.com/css2?family=TASA+Explorer:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
 
   <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/layout.css">
@@ -39,7 +39,7 @@
         title="收合側邊欄">
         <span class="svg-icon icon-chevron-left" style="width:14px;height:14px" aria-hidden="true"></span>
       </button>
-      <a class="brand" href="#/home">
+      <a class="brand" href="#/photos">
         <img class="brand-logo" src="assets/images/icon.svg" alt="Photo Manager 標誌">
         <div class="brand-text">
           <div class="brand-name"><strong>PHOTO</strong>MANAGER</div>
@@ -60,17 +60,21 @@
     <main class="main">
       <!-- 照片來源是跨頁共用的狀態, 所以留在外殼上, 只在需要它的頁面顯示。 -->
       <div class="source-bar" id="sourceBar" hidden>
-        <button class="upload-btn" id="pickFolderBtn">開啟資料夾</button>
-        <label class="check" title="連同子資料夾裡的照片一起讀入">
-          <input type="checkbox" id="recursiveChk" checked> 含子資料夾
-        </label>
-        <div class="divider"></div>
-        <label class="ghost-btn" for="fileInput">選擇檔案</label>
-        <input id="fileInput" type="file"
-          accept="image/jpeg,image/jpg,image/tiff,image/heic,image/heif,.heic,.heif" multiple>
-        <div class="source-info" id="sourceInfo">尚未選擇</div>
-        <button class="clear-btn" id="rescanBtn" hidden>重新掃描</button>
-        <button class="clear-btn" id="clearBtn">清除</button>
+        <div class="source-controls">
+          <button class="upload-btn" id="pickFolderBtn">開啟資料夾</button>
+          <button class="ghost-btn" id="recentBtn" hidden></button>
+          <label class="check" title="連同子資料夾裡的照片一起讀入">
+            <input type="checkbox" id="recursiveChk" checked> 含子資料夾
+          </label>
+          <div class="divider"></div>
+          <label class="ghost-btn" for="fileInput">選擇檔案</label>
+          <input id="fileInput" type="file"
+            accept="image/jpeg,image/jpg,image/tiff,image/heic,image/heif,.heic,.heif" multiple>
+          <div class="source-spacer"></div>
+          <button class="clear-btn" id="rescanBtn" hidden>重新掃描</button>
+          <button class="clear-btn" id="clearBtn">清除</button>
+        </div>
+        <div class="source-stats" id="sourceStats"></div>
       </div>
 
       <div class="notice warn" id="fsWarn" hidden></div>

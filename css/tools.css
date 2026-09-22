@@ -324,8 +324,16 @@ input[type="range"],
   cursor: pointer;
   --fill: 0%;
 }
+/* 拖動時不要外框: 滑鼠按下去也會觸發 :focus-visible, 整條框起來很吵。
+   鍵盤操作的焦點提示改畫在滑塊上（下面的 ::-webkit-slider-thumb）。 */
+input[type="range"]:focus,
 input[type="range"]:focus-visible,
-.tool-range:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+.tool-range:focus,
+.tool-range:focus-visible {
+  outline: none;
+  border-color: transparent;
+  box-shadow: none;
+}
 
 input[type="range"]::-webkit-slider-runnable-track {
   height: 8px;
@@ -346,6 +354,13 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--cffy-theme-primary-a30);
 }
 input[type="range"]:hover::-webkit-slider-thumb { background: var(--cffy-theme-primary-a50); }
+/* 鍵盤走到這裡時, 滑塊自己亮一圈; 滑鼠拖動（:active）不畫。 */
+input[type="range"]:focus-visible:not(:active)::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(var(--rgb-primary), 0.45);
+}
+input[type="range"]:focus-visible:not(:active)::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(var(--rgb-primary), 0.45);
+}
 
 input[type="range"]::-moz-range-track {
   height: 8px;

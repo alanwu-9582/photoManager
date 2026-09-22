@@ -9,10 +9,6 @@ import { icon } from "../utils/utils.js";
  *   tool    這一頁是工具頁, 由 pages/tool.js 掛載 js/tools/<id>/index.js。
  */
 export const ROUTES = {
-  home: {
-    fragment: "pages/home.html", module: "../pages/home.js",
-    label: "首頁", icon: "home", nav: true,
-  },
   photos: {
     fragment: "pages/photos.html", module: "../pages/photos.js",
     label: "照片檢視", icon: "image", nav: true, group: "照片管理", source: true,
@@ -76,7 +72,7 @@ export function replaceParams(name, params = {}) {
 
 export function readRoute() {
   const raw = location.hash.replace(/^#\/?/, "");
-  if (!raw) return { name: "home", params: new URLSearchParams() };
+  if (!raw) return { name: "photos", params: new URLSearchParams() };
   const [name, query = ""] = raw.split("?");
   return {
     name: ROUTES[name] ? name : "not-found",
@@ -144,7 +140,7 @@ export async function renderRoute() {
     const html = await response.text();
     if (revision !== renderRevision) return;
     outlet.innerHTML = html;
-    document.title = routeState.name === "home" ? SITE_TITLE : `${route.label} · ${SITE_TITLE}`;
+    document.title = `${route.label} · ${SITE_TITLE}`;
     cleanup = await controller.mountPage({
       params: routeState.params,
       route: { name: routeState.name, ...route },
@@ -161,6 +157,7 @@ export function startRouter() {
     window.addEventListener("hashchange", renderRoute);
     started = true;
   }
-  if (!location.hash || location.hash === "#/") location.hash = "#/home";
+  // 沒有首頁: 照片檢視就是進來的第一頁。
+  if (!location.hash || location.hash === "#/") location.hash = "#/photos";
   else renderRoute();
 }

@@ -30,6 +30,8 @@ export const state = {
   photosPage: 0,
   hideDone: false,
   columns: 4,
+  /** 照片檢視的篩選條件: {field, value, mode:"include"|"exclude"} */
+  filters: [],
   manageColumns: 3,
   selectedId: null,
   // 編輯工具之間共用的目前照片。外部上傳也可在工具間延續，但不會改 selectedId。

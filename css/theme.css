@@ -78,13 +78,15 @@
      所以沒有膠囊（999px）或正圓（50%）圓角, 除非另有註記。 */
   --radius-xs: 4px;
   --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 14px;
+  --radius: 12px;
+  --radius-lg: 16px;
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   --gap: 16px;
 
   /** Fonts */
-  --font-family: "TASA Explorer", "TASA Orbiter", "IBM Plex Sans JP", sans-serif;
+  /* TASA Explorer 只有拉丁字, 中文自然落到 IBM Plex Sans JP —— 兩套的字重與
+     字面高度接近, 中英夾雜的一行不會忽大忽小。 */
+  --font-family: "TASA Explorer", "IBM Plex Sans JP", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Spacing scale */
@@ -109,15 +111,16 @@
   --control-height: 40px;
   --hit-min: 44px;
 
-  /* Motion */
-  --duration-fast: 120ms;
-  --duration-default: 180ms;
-  --easing-standard: ease;
+  /* Motion —— 進場快、收尾慢的曲線, 動作看起來才像被「放開」而不是被切斷。 */
+  --duration-fast: 140ms;
+  --duration-default: 220ms;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --easing-standard: var(--ease);
 
   /* Focus ring / overlays */
   --color-focus: var(--cffy-theme-primary-a30);
   --focus-ring: 2px solid var(--color-focus);
-  --overlay-scrim: rgba(0, 0, 0, 0.6);
+  --overlay-scrim: rgba(0, 0, 0, 0.72);
   --surface-selected: rgba(var(--rgb-primary), 0.16);
 
   /* Z-index scale */

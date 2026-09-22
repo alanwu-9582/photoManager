@@ -84,7 +84,6 @@ input[type=file] {
     margin-left: auto;
 }
 
-.source-info,
 .photo-count,
 .page-info {
     min-height: var(--control-height);
@@ -110,72 +109,14 @@ input[type=file] {
     color: var(--danger);
 }
 
-/* ---------- EXIF 欄位選擇 ---------- */
-/* 跟工具頁的控制項同一套長相: 一張可收合的卡片, 裡面是一排開關。 */
-.field-panel {
-    margin-bottom: 20px;
-    background: var(--bg-2);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    /* summary 的 hover 底色要被圓角切齊。 */
-    overflow: hidden;
-}
-
-.field-panel summary {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    height: var(--control-height);
-    padding: 0 14px;
-    cursor: pointer;
-    font-family: var(--font-family);
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--text);
-    list-style: none;
-    user-select: none;
-}
-
-.field-panel summary::-webkit-details-marker {
-    display: none;
-}
-
-.field-panel summary::before {
-    content: "▸";
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.field-panel[open] summary::before {
-    content: "▾";
-}
-
-.field-panel summary:hover {
-    background: var(--bg-3);
-}
-
-.field-panel summary:focus-visible {
-    outline: var(--focus-ring);
-    outline-offset: -2px;
-}
-
-.field-count {
-    margin-left: auto;
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    font-variant-numeric: tabular-nums;
-    color: var(--muted);
-}
-
+/* ---------- EXIF 欄位開關（用在對話框裡） ---------- */
+/* 關著是一顆安靜的灰底, 開著就填上主色 —— 跟分頁鈕、工具開關一致。 */
 .chip-row {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    padding: 12px 14px 14px;
-    border-top: 1px solid var(--line);
 }
 
-/* 開關: 關著是一顆安靜的灰底, 開著就填上主色 —— 跟分頁鈕、工具開關一致。 */
 .chip {
     height: 32px;
     padding: 0 12px;
@@ -189,12 +130,19 @@ input[type=file] {
     border-radius: var(--radius-sm);
     cursor: pointer;
     user-select: none;
-    transition: background .12s ease, color .12s ease, border-color .12s ease;
+    transition: background var(--duration-fast) var(--ease),
+                color var(--duration-fast) var(--ease),
+                border-color var(--duration-fast) var(--ease),
+                transform var(--duration-fast) var(--ease);
 }
 
 .chip:hover {
     color: var(--text);
     border-color: var(--border);
+}
+
+.chip:active {
+    transform: scale(0.97);
 }
 
 .chip:focus-visible {
@@ -289,11 +237,17 @@ input[type=file] {
 
 .exif-list .k {
     color: var(--muted);
+    /* 欄位名不折: 卡片窄的時候折起來會變成一個字一行, 整張卡看起來像壞掉。 */
+    white-space: nowrap;
+    flex: 0 0 auto;
 }
 
 .exif-list .v {
     color: var(--text);
     text-align: right;
+    min-width: 0;
+    /* 值可以換行, 但長字串（鏡頭名）要斷得下來。 */
+    overflow-wrap: anywhere;
 }
 
 .exif-empty {
@@ -693,6 +647,31 @@ input[type=file] {
     margin-top: 22px;
 }
 
+/*
+ * 浮在畫面底部的換頁列。
+ * 一頁有幾十張照片, 要換頁得先捲到最底 —— sticky 讓它在捲動時貼著視窗下緣,
+ * 捲到底時再自然落回內容的最後一列。空的時候（只有一頁）不要留白條, 所以
+ * :empty 整個收掉。
+ */
+.pagination.is-floating {
+    position: sticky;
+    bottom: 14px;
+    z-index: 3;
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+    padding: 8px 12px;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg-2);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+
+.pagination.is-floating:empty {
+    display: none;
+}
+
 .page-btn {
     font-family: var(--font-family);
     font-size: 12.5px;
@@ -728,9 +707,8 @@ input[type=file] {
    ============================================================ */
 .source-bar {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 14px;
+    flex-direction: column;
+    gap: 10px;
     padding: 12px 16px;
     margin-bottom: 18px;
     background: var(--bg-2);
@@ -738,25 +716,54 @@ input[type=file] {
     border-radius: var(--radius);
 }
 
-.source-bar .divider {
+.source-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.source-spacer {
+    flex: 1 1 auto;
+}
+
+/* 這一排數字本來在首頁。首頁拿掉之後就住在這裡, 一直跟著來源。 */
+.source-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 20px;
+}
+
+.source-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+}
+
+.source-stat-value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 24ch;
+}
+
+.source-stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    order: -1;
+}
+
+.source-controls .divider {
     width: 1px;
     align-self: stretch;
     background: var(--line);
-}
-
-.source-info {
-    margin-left: auto;
-    font-size: 12px;
-    color: var(--muted);
-    font-family: var(--font-family);
-}
-
-.source-info.ok {
-    color: var(--text);
-}
-
-.source-info b {
-    font-family: var(--font-mono);
 }
 
 .ghost-btn {
@@ -1152,62 +1159,67 @@ body.dragging::after {
 }
 
 /* ---------- 卡片上的編輯快捷 ---------- */
-/* 疊在縮圖上, 絕對定位 —— 不管出現或消失, 卡片的大小都不會變, 格線不會跳。 */
-.card-actions {
+/* 只有一顆按鈕, 按下去才挑工具 —— 以後編輯工具再多, 縮圖上也只會有這一顆。
+   絕對定位疊在縮圖上, 出現或消失都不會動到卡片的大小。 */
+.card-open {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    padding: 12px 8px 8px;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .12s ease;
-}
-
-/* 滑過、鍵盤 focus 進去、或觸控點開才浮出來。 */
-.grid .card:hover .card-actions,
-.grid .card:focus-within .card-actions,
-.grid .card.is-open .card-actions {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.card-action {
+    right: 8px;
+    bottom: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 34px;
     height: 34px;
     padding: 0;
-    /* 34px 的短邊, 6px 圓角在 1/3 以內。 */
+    /* 34px 的短邊, 10px 圓角在 1/3 以內。 */
     border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: var(--radius-sm);
-    background: rgba(18, 18, 18, 0.72);
+    border-radius: 10px;
+    /* 不用 backdrop-filter: 一頁有幾十張卡片, 每顆都是一個獨立的合成層,
+       捲動與開對話框時會整片重算。實心底色在縮圖上一樣看得清楚。 */
+    background: rgba(18, 18, 18, 0.86);
     color: #fff;
     cursor: pointer;
-    transition: background .12s ease, color .12s ease, border-color .12s ease;
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity var(--duration-fast) var(--ease),
+                transform var(--duration-fast) var(--ease),
+                background var(--duration-fast) var(--ease);
 }
 
-.card-action:hover {
+.grid .card:hover .card-open,
+.grid .card:focus-within .card-open {
+    opacity: 1;
+    transform: none;
+}
+
+.card-open:hover {
     background: var(--primary);
     color: var(--on-primary);
     border-color: transparent;
 }
 
-.card-action:focus-visible {
+.card-open:active {
+    transform: scale(0.94);
+}
+
+.card-open:focus-visible {
     outline: var(--focus-ring);
     outline-offset: 2px;
 }
 
-@media (pointer: coarse) {
-    .card-action {
+/* 沒有滑鼠的裝置本來就沒有 hover, 直接讓它一直在。 */
+@media (hover: none) {
+    .card-open {
+        opacity: 1;
+        transform: none;
         width: 40px;
         height: 40px;
     }
+}
+
+/* 整張縮圖都可以點 —— 點哪裡都會跳出工具清單。 */
+.grid .thumb-wrap {
+    cursor: pointer;
 }
 
 .card-cat-dot {
@@ -1271,10 +1283,10 @@ body.dragging::after {
    一排裡面有按鈕、下拉、滑桿、勾選框, 高矮不一整排就會看起來是歪的。
    全部吃同一個 --control-height。
    ============================================================ */
-.source-bar .upload-btn,
-.source-bar .ghost-btn,
-.source-bar .clear-btn,
-.source-bar .check,
+.source-controls .upload-btn,
+.source-controls .ghost-btn,
+.source-controls .clear-btn,
+.source-controls .check,
 .toolbar .upload-btn,
 .toolbar .ghost-btn,
 .toolbar .clear-btn,
@@ -1358,3 +1370,215 @@ body.dragging::after {
 }
 .preview-info-body { padding: 10px 12px 12px; }
 .preview-info-body > *:last-child { margin-bottom: 0; }
+
+/* ---------- 工具列上的按鈕徽章（篩選條件數、欄位數） ---------- */
+.ghost-btn.with-badge {
+    gap: 7px;
+}
+
+.btn-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    /* 20px 的短邊, 6px 圓角在 1/3 以內。 */
+    border-radius: var(--radius-sm);
+    background: var(--primary);
+    color: var(--on-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.btn-badge.is-quiet {
+    background: var(--bg-3);
+    color: var(--muted);
+}
+
+/* ---------- 統計: 直方圖與甜甜圈 ---------- */
+.bar-label {
+    /* 名稱太長就切掉, 一列一項才不會被撐開。 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-scroll {
+    margin-top: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.chart-columns {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.col-bar {
+    fill: var(--accent);
+}
+
+.col-axis {
+    stroke: var(--line);
+    stroke-width: 1;
+}
+
+.col-tick {
+    fill: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-anchor: middle;
+}
+
+.chart-donut {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.chart-donut svg {
+    flex: 0 0 auto;
+}
+
+.donut-total {
+    fill: var(--text);
+    font-family: var(--font-mono);
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.chart-legend {
+    flex: 1 1 140px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chart-legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    min-width: 0;
+}
+
+.legend-swatch {
+    width: 10px;
+    height: 10px;
+    /* 10px 的短邊, 3px 圓角在 1/3 以內。 */
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.chart-legend .legend-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-legend .legend-value {
+    font-family: var(--font-mono);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* ============================================================
+   細節: 按下去的回饋與卡片的浮起
+   ------------------------------------------------------------
+   動作要有「接到了」的感覺: 按下去縮一點點, 放開回彈;
+   曲線統一用 --ease（進場快、收尾慢）, 全站的動作才像同一套。
+   ============================================================ */
+.upload-btn,
+.ghost-btn,
+.clear-btn,
+.export-btn,
+.icon-btn,
+.legend-item,
+.page-btn {
+    transition: background var(--duration-fast) var(--ease),
+                border-color var(--duration-fast) var(--ease),
+                color var(--duration-fast) var(--ease),
+                transform var(--duration-fast) var(--ease);
+}
+
+.upload-btn:active,
+.ghost-btn:active,
+.clear-btn:active,
+.export-btn:active,
+.icon-btn:active,
+.legend-item:active,
+.page-btn:active {
+    transform: scale(0.97);
+}
+
+.upload-btn:disabled:active,
+.export-btn:disabled:active,
+.page-btn:disabled:active {
+    transform: none;
+}
+
+/* 縮圖卡片: 滑過時輕輕浮起來一點, 邊框跟著亮。 */
+.grid .card {
+    transition: transform var(--duration-default) var(--ease),
+                border-color var(--duration-fast) var(--ease);
+}
+
+.grid .card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border);
+}
+
+.thumb-card {
+    transition: transform var(--duration-fast) var(--ease),
+                border-color var(--duration-fast) var(--ease);
+}
+
+.thumb-card:active {
+    transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .grid .card:hover,
+    .thumb-card:active,
+    .upload-btn:active,
+    .ghost-btn:active,
+    .clear-btn:active,
+    .export-btn:active,
+    .icon-btn:active,
+    .page-btn:active {
+        transform: none;
+    }
+}
+
+/* ---------- 窄螢幕: 每排張數自己收斂 ---------- */
+/* 「每排」是使用者在桌機設的, 拿到手機上照用會變成一排四張指甲大的圖。
+   這裡直接蓋掉 JS 寫的行內值, 螢幕多寬就放幾張。 */
+@media (max-width: 560px) {
+    #grid.grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .manage-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 380px) {
+    #grid.grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}

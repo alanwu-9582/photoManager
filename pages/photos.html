@@ -18,19 +18,22 @@
       <option value="200">200</option>
     </select>
   </div>
+  <div class="divider"></div>
+  <button class="ghost-btn with-badge" id="filterBtn">
+    <span class="svg-icon icon-filter" style="width:14px;height:14px" aria-hidden="true"></span>
+    篩選
+    <span class="btn-badge" id="filterCount" hidden></span>
+  </button>
+  <button class="ghost-btn with-badge" id="fieldBtn">
+    <span class="svg-icon icon-info" style="width:14px;height:14px" aria-hidden="true"></span>
+    EXIF 欄位
+    <span class="btn-badge is-quiet" id="fieldCount"></span>
+  </button>
   <div class="photo-count" id="photoCount">—</div>
 </div>
 
-<details class="field-panel" id="fieldPanel">
-  <summary>
-    <span class="field-panel-title">EXIF 欄位</span>
-    <span class="field-count" id="fieldCount"></span>
-  </summary>
-  <div class="chip-row" id="chipRow"></div>
-</details>
-
 <div id="grid" class="grid"></div>
-<div id="photosPagination" class="pagination"></div>
+<div id="photosPagination" class="pagination is-floating"></div>
 <div id="emptyState" class="empty-state">
   <div class="glyph">◎</div>
   <p>尚未載入照片</p>

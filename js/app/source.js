@@ -8,6 +8,7 @@ import { escapeHtml } from "../utils/utils.js";
 import { notify } from "../ui/notifications.js";
 import { confirmDialog, alertDialog } from "./dialog.js";
 import { state, Marks, fmtBytes, emitLibraryChange } from "./state.js";
+import { rememberFolder, loadLastFolder, ensureAccess } from "./recent-folder.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -39,21 +40,33 @@ function detachImages() {
 }
 
 /* ---------- 來源資訊 ---------- */
+/** 一格數字。原本這幾格在首頁, 首頁拿掉之後就住在來源列裡。 */
+function statCell(label, value) {
+  return `<div class="source-stat"><span class="source-stat-value">${escapeHtml(value)}</span>`
+    + `<span class="source-stat-label">${escapeHtml(label)}</span></div>`;
+}
+
 export function renderSourceInfo() {
-  const info = $("sourceInfo");
-  if (!info) return;
+  const stats = $("sourceStats");
+  if (!stats) return;
   const s = PMLibrary.stats();
+
   if (!PMLibrary.mode) {
-    info.textContent = "尚未選擇";
-    info.classList.remove("ok");
-  } else if (PMLibrary.mode === "folder") {
-    info.innerHTML = `📁 <b>${escapeHtml(PMLibrary.rootName)}</b> · ${s.total} 張 · ${fmtBytes(s.bytes)}${s.bytes ? "＋" : ""}`;
-    info.classList.add("ok");
+    stats.innerHTML = statCell("來源", "尚未選擇");
   } else {
-    info.innerHTML = `📄 ${s.total} 張 · ${fmtBytes(s.bytes)}`;
-    info.classList.add("ok");
+    const where = PMLibrary.mode === "folder" ? PMLibrary.rootName : "選擇的檔案";
+    stats.innerHTML = [
+      statCell("來源", where),
+      statCell("張數", `${s.total}`),
+      statCell("EXIF", `${s.analysed} / ${s.total}`),
+      statCell("已標記", `${s.marked}`),
+      statCell("已整理", `${s.organized}`),
+      statCell("容量", s.bytes ? fmtBytes(s.bytes) : "—"),
+    ].join("");
   }
+  stats.classList.toggle("is-loaded", !!PMLibrary.mode);
   $("rescanBtn").hidden = PMLibrary.mode !== "folder";
+  $("clearBtn").hidden = !PMLibrary.mode;
 }
 
 function afterSourceChanged() {
@@ -77,6 +90,7 @@ async function openFolder() {
       skipFolders: $("recursiveChk").checked ? skip : new Set(),
       onProgress: (n) => showProgressText(`掃描中… ${n} 張`),
     });
+    rememberFolder(PMLibrary.rootHandle);
     afterSourceChanged();
   } catch (err) {
     hideProgress();
@@ -115,6 +129,49 @@ function handleFiles(files) {
 }
 
 /* ---------- 綁定（只做一次） ---------- */
+/**
+ * 上一次開過的資料夾。
+ *
+ * 權限在重新整理之後通常會掉回 prompt, 而權限詢問只有在使用者的點擊裡才會過,
+ * 所以這裡分兩種: 還有權限就直接開; 沒有就在來源列上放一顆按鈕, 按了再問。
+ */
+async function initRecentFolder() {
+  const btn = $("recentBtn");
+  if (!btn || !PMLibrary.supportsFolder()) return;
+  const saved = await loadLastFolder();
+  if (!saved) return;
+
+  const open = async () => {
+    btn.disabled = true;
+    try {
+      if (!await ensureAccess(saved.handle, true)) { btn.disabled = false; return; }
+      detachImages();
+      showProgressText("掃描中…");
+      await PMLibrary.openFolderHandle(saved.handle, {
+        recursive: $("recursiveChk").checked,
+        skipFolders: new Set(PMCategories.all().map((c) => c.folder)),
+        onProgress: (n) => showProgressText(`掃描中… ${n} 張`),
+      });
+      btn.hidden = true;
+      afterSourceChanged();
+    } catch (err) {
+      hideProgress();
+      btn.disabled = false;
+      notify.warning(`開不了上次的資料夾: ${err.message}`);
+    }
+  };
+
+  if (await ensureAccess(saved.handle, false)) {
+    // 權限還在, 直接接上去 —— 使用者回來就看到上次那批照片。
+    open();
+    return;
+  }
+  btn.hidden = false;
+  btn.textContent = `↻ ${saved.name}`;
+  btn.title = `重新開啟上次的資料夾: ${saved.name}`;
+  btn.addEventListener("click", open);
+}
+
 export function initSourceBar() {
   $("pickFolderBtn").addEventListener("click", openFolder);
   $("rescanBtn").addEventListener("click", rescanFolder);
@@ -181,6 +238,7 @@ export function initSourceBar() {
             skipFolders: new Set(PMCategories.all().map((c) => c.folder)),
             onProgress: (n) => showProgressText(`掃描中… ${n} 張`),
           });
+          rememberFolder(dir);
           afterSourceChanged();
           return;
         }
@@ -205,4 +263,5 @@ export function initSourceBar() {
   }
 
   renderSourceInfo();
+  initRecentFolder();
 }

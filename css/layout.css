@@ -84,10 +84,10 @@ textarea:focus-visible,
   position: absolute;
   top: 26px;
   right: -13px;
-  /* 26px 搭配 right:-13px 讓它剛好卡在側邊欄邊界上。圓角 8px < 26/3。 */
+  /* 正圓是刻意的例外: 26px 搭配 right:-13px 讓它剛好卡在側邊欄邊界上。 */
   width: 26px;
   height: 26px;
-  border-radius: 8px;
+  border-radius: 50%;
   border: 1px solid var(--border-soft);
   background: var(--card-bg-alt);
   color: var(--text-muted);
@@ -141,8 +141,17 @@ textarea:focus-visible,
   letter-spacing: 0.03em;
   cursor: pointer;
 }
+.nav-link {
+  transition: background var(--duration-fast) var(--ease),
+              color var(--duration-fast) var(--ease);
+}
 .nav-link:hover { background: var(--card-bg-alt); color: var(--text); text-decoration: none; }
-.nav-link.active { color: var(--interactive); }
+/* 選中的那一項整塊亮起來, 不是只換字色 —— 側邊欄一眼就看得出現在在哪。 */
+.nav-link.active {
+  color: var(--text);
+  background: var(--surface-selected);
+}
+.nav-link.active .ico { color: var(--interactive); }
 .nav-link:focus-visible { text-decoration: none; }
 .nav-link .ico {
   width: 18px; height: 18px;

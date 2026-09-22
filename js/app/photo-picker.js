@@ -49,7 +49,7 @@ export function photoPicker({ onPick }) {
 
   const take = (file, origin = { source: "external" }) => {
     if (!file) return;
-    if (!/^image\//.test(file.type) && !/\.(jpe?g|png|webp|tiff?|avif|heic|heif)$/i.test(file.name)) {
+    if (!PMImage.isImageFile(file)) {
       notify.warning("不是圖片檔");
       return;
     }

@@ -25,87 +25,6 @@
   background: var(--border-soft);
 }
 
-/* ================= 首頁 ================= */
-.hero-card {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  text-align: left;
-  gap: 22px;
-  padding: 26px 28px;
-}
-.hero-logo {
-  width: 88px;
-  height: 88px;
-  flex-shrink: 0;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-soft);
-  background: var(--cffy-theme-surface-a20);
-  object-fit: contain;
-  padding: 8px;
-}
-.hero-body { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
-.hero-title {
-  margin: 0;
-  font-size: clamp(26px, 1.4rem + 1.6vw, 38px);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
-
-@media (max-width: 620px) {
-  .hero-card { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
-  .hero-logo { width: 64px; height: 64px; }
-}
-
-.home-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
-  margin-top: 16px;
-}
-.home-stat {
-  padding: 14px 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius);
-}
-.home-stat-value { font-size: 21px; font-weight: 800; line-height: 1.2; color: var(--text); }
-.home-stat-label { font-size: var(--text-caption); color: var(--text-muted); margin-top: 2px; }
-
-.entry-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 12px;
-}
-.entry-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px 18px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius);
-  color: inherit;
-  min-width: 0;
-}
-.entry-card:hover { border-color: var(--primary); background: var(--card-bg-alt); text-decoration: none; }
-.entry-card:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-.entry-card-title {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: 700;
-  line-height: 1.45;
-  color: var(--text);
-  overflow-wrap: anywhere;
-}
-.entry-card-ico { display: inline-flex; align-items: center; flex-shrink: 0; color: var(--text-muted); }
-.entry-card:hover .entry-card-ico { color: var(--interactive); }
-
 /* ================= 工具頁外框 ================= */
 /* 工具頁只有「標題 + 工具本體」, 沒有文章說明。 */
 .tool-page {
@@ -267,3 +186,101 @@
 .dialog-actions { display: flex; gap: 10px; }
 .btn-danger { background: var(--critical); color: var(--on-primary); }
 .btn-danger:hover { background: var(--cffy-theme-danger-a10); }
+
+
+/* ================= 篩選對話框 ================= */
+.filter-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 一列就是一個條件: 欄位、值、包含與否、移除。 */
+.filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+.filter-row .tool-input { height: var(--control-height); }
+.filter-mode { flex: 0 0 auto; }
+.filter-mode .tool-seg { padding-inline: 10px; }
+
+.filter-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height);
+  height: var(--control-height);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease),
+              border-color var(--duration-fast) var(--ease),
+              transform var(--duration-fast) var(--ease);
+}
+.filter-remove:hover { color: var(--critical); border-color: var(--critical); }
+.filter-remove:active { transform: scale(0.94); }
+.filter-remove:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+/* 一條條件都沒有的時候不寫「尚無條件」—— 空的清單本來就看得出來是空的,
+   下面那顆整排的按鈕已經說完該做什麼了。 */
+.filter-add {
+  width: 100%;
+  justify-content: center;
+  border-style: dashed;
+}
+
+.filter-summary {
+  font-family: var(--font-mono);
+  font-size: var(--text-supporting);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
+  .filter-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .filter-row .filter-mode { grid-column: 1 / -1; }
+}
+
+/* ================= 用哪個工具開啟 ================= */
+.tool-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tool-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--text-body);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease),
+              transform var(--duration-fast) var(--ease);
+}
+.tool-menu-item:hover { background: var(--card-bg-alt); }
+.tool-menu-item:active { transform: scale(0.99); }
+.tool-menu-item:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+.tool-menu-ico { display: inline-flex; color: var(--interactive); }
+.tool-menu-label { flex: 1 1 auto; min-width: 0; }
+.tool-menu-go { display: inline-flex; color: var(--text-dim); }
+.tool-menu-item:hover .tool-menu-go { color: var(--text-muted); }

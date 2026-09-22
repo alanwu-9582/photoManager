@@ -300,7 +300,8 @@ export function mount(host) {
 
   async function load(file) {
     if (!file) return;
-    if (!/^image\//.test(file.type)) {
+    // 只看 file.type 會把資料夾裡的 .heic 擋掉（那邊常常沒有 MIME）, 所以走共用的判斷。
+    if (!PMImage.isImageFile(file)) {
       stat.set("不是圖片檔", "error");
       return;
     }
