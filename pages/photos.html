@@ -1,0 +1,40 @@
+<div class="page-head">
+  <h1 class="page-title">照片檢視</h1>
+</div>
+
+<div class="toolbar">
+  <div class="control-group">
+    <label>每排</label>
+    <input type="range" id="colSlider" min="1" max="8" value="4">
+    <span class="col-count" id="colCount">4</span>
+  </div>
+  <div class="divider"></div>
+  <div class="control-group">
+    <label>每頁</label>
+    <select id="pageSizeSelect" class="mini-select">
+      <option value="30">30</option>
+      <option value="50" selected>50</option>
+      <option value="100">100</option>
+      <option value="200">200</option>
+    </select>
+  </div>
+  <div class="divider"></div>
+  <button class="ghost-btn with-badge" id="filterBtn">
+    <span class="svg-icon icon-filter" style="width:14px;height:14px" aria-hidden="true"></span>
+    篩選
+    <span class="btn-badge" id="filterCount" hidden></span>
+  </button>
+  <button class="ghost-btn with-badge" id="fieldBtn">
+    <span class="svg-icon icon-info" style="width:14px;height:14px" aria-hidden="true"></span>
+    EXIF 欄位
+    <span class="btn-badge is-quiet" id="fieldCount"></span>
+  </button>
+  <div class="photo-count" id="photoCount">—</div>
+</div>
+
+<div id="grid" class="grid"></div>
+<div id="photosPagination" class="pagination is-floating"></div>
+<div id="emptyState" class="empty-state">
+  <div class="glyph">◎</div>
+  <p>尚未載入照片</p>
+</div>

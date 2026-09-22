@@ -1,0 +1,33 @@
+/* js/tools/exif-frame/exif-frame.css — EXIF 相框。
+   照片區用共用的 .tool-stage（固定大小）, 這裡只補這個工具自己的東西。 */
+
+.frame-placeholder {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-supporting);
+}
+
+/* 外層 .stage-fill 的大小是確定的, 這裡就只要給上限, 相框自己照比例縮進去。 */
+.frame-canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+}
+
+/* 常用底色: 四格平分一整列、跟其他控制項一樣高, 手指也按得到。
+   不換行 —— 換行的話最後一格會獨佔一整列, 看起來像壞掉。 */
+.ctl-row.frame-swatches { gap: 6px; flex-wrap: nowrap; }
+.frame-swatch {
+  flex: 1 1 0;
+  min-width: 34px;
+  height: 100%;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+.frame-swatch:hover { border-color: var(--primary); }
+.frame-swatch:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }

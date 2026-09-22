@@ -1,0 +1,286 @@
+/* css/pages.css — 首頁、工具頁外框, 以及跨頁共用的照片挑選器。 */
+
+/* ================= 側邊欄的分組標題 ================= */
+.nav-section {
+  margin: 14px 0 2px;
+  padding: 0 12px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.side-nav.collapsed .nav-section {
+  margin: 12px 0 4px;
+  padding: 0;
+  text-align: center;
+  font-size: 0;
+}
+/* 收合成圖示軌時, 分組標題退化成一條分隔線。 */
+.side-nav.collapsed .nav-section::after {
+  content: "";
+  display: block;
+  height: 1px;
+  margin: 0 12px;
+  background: var(--border-soft);
+}
+
+/* ================= 工具頁外框 ================= */
+/* 工具頁只有「標題 + 工具本體」, 沒有文章說明。 */
+.tool-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: calc(100vh - 56px);
+  height: calc(100dvh - 56px);
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+.tool-page .page-head { flex: 0 0 auto; }
+.tool-page #toolHost { flex: 1 1 0; min-width: 0; min-height: 0; overflow: hidden; }
+.tool-page .tool-panel {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* 編輯工具固定在可視範圍；預覽不動，只有右側選項捲動。 */
+.main:has(.tool-page) {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  padding-bottom: 28px;
+  overflow: hidden;
+}
+.tool-page .tool-board,
+.tool-page .tool-shell { height: 100%; min-height: 0; }
+.tool-page .tool-board { flex: 1 1 0; }
+.tool-page .tool-shell { grid-template-rows: minmax(0, 1fr); }
+.tool-page .tool-controls {
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  /* 右邊: 捲動條的軌道（scrollbar-gutter）之外再留一段, 控制項不會貼著它。
+     左邊: 跟照片區之間多一點呼吸。
+     下面: 留一段空白, 捲到最後一個欄位還能再往下推一點, 不會頂著邊緣。 */
+  padding: 0 14px 52px 8px;
+}
+.tool-page .tool-side {
+  position: static;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 狀態列預留固定空間，載入照片後文字出現也不會壓縮照片區。 */
+.tool-page .tool-side {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto 32px auto;
+  gap: 12px;
+}
+.tool-page .tool-side > .tool-stage { grid-row: 1; height: auto; min-height: 0; }
+.tool-page .tool-side > .picker { grid-row: 2; }
+.tool-page .tool-side > .tool-preview-meta {
+  grid-row: 3;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+}
+.tool-page .tool-side > .tool-actions { grid-row: 4; margin-top: 0; }
+
+/* 版面切成單欄的時機是由容器寬度決定的（.tool-shell 的 @container 560px）,
+   而「整頁填滿視窗」只能用視窗寬度判斷。主內容欄大約是視窗寬減掉側邊欄與內距,
+   900px 是兩者換手的地方 —— 早一點退回一般捲動, 也不會讓照片區被壓扁。 */
+@media (max-width: 900px) {
+  .main:has(.tool-page) { height: auto; max-height: none; min-height: 0; overflow: visible; }
+  .tool-page { height: auto; min-height: 0; }
+  .tool-page #toolHost { flex: 0 0 auto; overflow: visible; }
+  .tool-page .tool-panel { height: auto; overflow: visible; }
+  .tool-page .tool-board,
+  .tool-page .tool-shell { height: auto; min-height: 0; }
+  .tool-page .tool-board { flex: none; }
+  .tool-page .tool-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+  .tool-page .tool-controls {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    padding: 0 0 24px;
+  }
+  .tool-page .tool-side {
+    display: flex;
+    height: auto;
+    overflow: visible;
+    /* 這個寬度是整頁在捲, 照片就釘在頂欄下面 —— 捲到下面調設定時還看得到結果。 */
+    position: sticky;
+    top: var(--tool-stick, 8px);
+    z-index: 1;
+    background: var(--cffy-theme-surface-a0);
+    padding-bottom: 10px;
+  }
+  .tool-page .tool-side > .tool-stage {
+    height: var(--stage-h);
+    min-height: var(--stage-h);
+    flex: none;
+  }
+}
+
+/* ================= 照片來源選擇（工具共用） ================= */
+.picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.picker-file { display: none; }
+
+/* 照片區本身就是拖放目標, 點空白處也可以換照片。 */
+.is-drop-zone { cursor: pointer; }
+.is-drop-zone.is-over { border-color: var(--primary); border-style: solid; }
+
+/* 從已載入的照片挑一張 */
+.pick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
+}
+.pick-cell {
+  position: relative;
+  padding: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--thumb-bg);
+  aspect-ratio: 1;
+  overflow: hidden;
+  cursor: pointer;
+}
+.pick-cell:hover { border-color: var(--primary); }
+.pick-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pick-cell .pick-name {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 3px 5px;
+  font-size: 10px;
+  text-align: left;
+  color: #fff;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ================= 對話框 ================= */
+.dialog-text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.7;
+  color: var(--text);
+  /* 訊息裡的清單是用換行排的, 要原樣保留。 */
+  white-space: pre-wrap;
+}
+.dialog-actions { display: flex; gap: 10px; }
+.btn-danger { background: var(--critical); color: var(--on-primary); }
+.btn-danger:hover { background: var(--cffy-theme-danger-a10); }
+
+
+/* ================= 篩選對話框 ================= */
+.filter-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 一列就是一個條件: 欄位、值、包含與否、移除。 */
+.filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+.filter-row .tool-input { height: var(--control-height); }
+.filter-mode { flex: 0 0 auto; }
+.filter-mode .tool-seg { padding-inline: 10px; }
+
+.filter-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height);
+  height: var(--control-height);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease),
+              border-color var(--duration-fast) var(--ease),
+              transform var(--duration-fast) var(--ease);
+}
+.filter-remove:hover { color: var(--critical); border-color: var(--critical); }
+.filter-remove:active { transform: scale(0.94); }
+.filter-remove:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+/* 一條條件都沒有的時候不寫「尚無條件」—— 空的清單本來就看得出來是空的,
+   下面那顆整排的按鈕已經說完該做什麼了。 */
+.filter-add {
+  width: 100%;
+  justify-content: center;
+  border-style: dashed;
+}
+
+.filter-summary {
+  font-family: var(--font-mono);
+  font-size: var(--text-supporting);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
+  .filter-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .filter-row .filter-mode { grid-column: 1 / -1; }
+}
+
+/* ================= 用哪個工具開啟 ================= */
+.tool-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tool-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--text-body);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease),
+              transform var(--duration-fast) var(--ease);
+}
+.tool-menu-item:hover { background: var(--card-bg-alt); }
+.tool-menu-item:active { transform: scale(0.99); }
+.tool-menu-item:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+.tool-menu-ico { display: inline-flex; color: var(--interactive); }
+.tool-menu-label { flex: 1 1 auto; min-width: 0; }
+.tool-menu-go { display: inline-flex; color: var(--text-dim); }
+.tool-menu-item:hover .tool-menu-go { color: var(--text-muted); }

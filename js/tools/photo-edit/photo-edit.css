@@ -1,0 +1,112 @@
+/* js/tools/photo-edit/photo-edit.css — 裁切旋轉。
+   照片區用共用的 .tool-stage（固定大小）, 這裡是裁切框與格線。 */
+
+.edit-placeholder { margin: 0; color: var(--text-dim); font-size: var(--text-supporting); }
+
+/* 寬高由 JS（fitFrame）算好塞進來, 外框剛好等於縮放後的照片 ——
+   疊在上面的裁切層就能用 inset: 0 精準對齊, 不必再算一次縮放。 */
+.edit-frame {
+  position: relative;
+  display: block;
+  line-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+.edit-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.edit-overlay {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.crop-box {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  /* 框外壓暗: 用一圈超大的陰影, 比鋪四塊遮罩簡單也不會有接縫。 */
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+  cursor: move;
+}
+.crop-guides {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.crop-guides .g-line {
+  stroke: rgba(255, 255, 255, 0.72);
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+.crop-guides .g-line.is-faint { stroke: rgba(255, 255, 255, 0.38); }
+.crop-guides path.g-line { stroke: rgba(255, 255, 255, 0.9); stroke-width: 1.4; }
+
+.crop-handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: transparent;
+}
+/* 角落的把手畫成兩條短邊, 比一顆方塊不擋畫面。 */
+.crop-handle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid #fff;
+}
+.h-nw { left: -2px; top: -2px; cursor: nwse-resize; }
+.h-nw::after { border-width: 3px 0 0 3px; }
+.h-ne { right: -2px; top: -2px; cursor: nesw-resize; }
+.h-ne::after { border-width: 3px 3px 0 0; }
+.h-se { right: -2px; bottom: -2px; cursor: nwse-resize; }
+.h-se::after { border-width: 0 3px 3px 0; }
+.h-sw { left: -2px; bottom: -2px; cursor: nesw-resize; }
+.h-sw::after { border-width: 0 0 3px 3px; }
+
+.h-n, .h-s { left: 50%; width: 30px; margin-left: -15px; cursor: ns-resize; }
+.h-e, .h-w { top: 50%; height: 30px; margin-top: -15px; cursor: ew-resize; }
+.h-n { top: -2px; }
+.h-n::after { border-width: 3px 0 0 0; }
+.h-s { bottom: -2px; }
+.h-s::after { border-width: 0 0 3px 0; }
+.h-w { left: -2px; }
+.h-w::after { border-width: 0 0 0 3px; }
+.h-e { right: -2px; }
+.h-e::after { border-width: 0 3px 0 0; }
+
+/* 鎖了比例就只剩四個角。 */
+.crop-box.is-locked .h-n,
+.crop-box.is-locked .h-s,
+.crop-box.is-locked .h-e,
+.crop-box.is-locked .h-w { display: none; }
+
+.edit-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 18px;
+}
+.edit-size {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+
+@media (pointer: coarse) {
+  .crop-handle { width: 26px; height: 26px; }
+  .h-n, .h-s { width: 44px; margin-left: -22px; }
+  .h-e, .h-w { height: 44px; margin-top: -22px; }
+}

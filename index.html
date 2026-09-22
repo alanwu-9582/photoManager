@@ -2,181 +2,107 @@
 <html lang="zh-Hant">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Photo Manager</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Photo Manager</title>
+  <meta name="description" content="純前端的照片工具箱: EXIF 檢視與統計、就地分類整理、裁切旋轉、EXIF 相框、照片色卡。照片不會上傳。">
+  <meta name="theme-color" content="#252525">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Photo Manager">
+  <meta property="og:description" content="純前端的照片工具箱, 照片不會離開這台電腦。">
+  <meta property="og:locale" content="zh_TW">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="icon" href="assets/images/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Photo Manager">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=TASA+Explorer:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/tools.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/photo.css">
 </head>
 
 <body>
+  <a class="skip-link" href="#page-outlet">跳到主要內容</a>
+  <div class="app">
+    <nav class="side-nav" id="side-nav" aria-label="主導覽">
+      <button type="button" id="sidebar-toggle" class="sidebar-toggle" aria-label="收合側邊欄" aria-expanded="true"
+        title="收合側邊欄">
+        <span class="svg-icon icon-chevron-left" style="width:14px;height:14px" aria-hidden="true"></span>
+      </button>
+      <a class="brand" href="#/photos">
+        <img class="brand-logo" src="assets/images/icon.svg" alt="Photo Manager 標誌">
+        <div class="brand-text">
+          <div class="brand-name"><strong>PHOTO</strong>MANAGER</div>
+          <div class="brand-sub">Manage · Edit</div>
+        </div>
+      </a>
+      <button type="button" id="nav-menu-toggle" class="nav-menu-toggle" aria-label="開啟選單" aria-expanded="false"
+        aria-controls="primary-nav" title="選單">
+        <span class="svg-icon icon-menu" style="width:20px;height:20px" aria-hidden="true"></span>
+      </button>
+      <div class="nav-group" id="primary-nav"></div>
+      <div class="nav-spacer"></div>
+      <div class="nav-foot" id="nav-foot">
+        <div>Photo Manager</div>
+      </div>
+    </nav>
 
-    <header class="top">
-        <h1>Photo Manager</h1>
-        <nav class="tabs">
-            <button class="tab-btn active" data-view="photosView">照片檢視</button>
-            <button class="tab-btn" data-view="statsView">統計數據</button>
-            <button class="tab-btn" data-view="manageView">整理分類</button>
-            <button class="tab-btn" data-view="settingsView">分類設定</button>
-            <button class="theme-toggle" id="themeToggle">☾ 深色模式</button>
-        </nav>
-    </header>
+    <main class="main">
+      <!-- 照片來源是跨頁共用的狀態, 所以留在外殼上, 只在需要它的頁面顯示。 -->
+      <div class="source-bar" id="sourceBar" hidden>
+        <div class="source-controls">
+          <button class="upload-btn" id="pickFolderBtn">開啟資料夾</button>
+          <button class="ghost-btn" id="recentBtn" hidden></button>
+          <label class="check" title="連同子資料夾裡的照片一起讀入">
+            <input type="checkbox" id="recursiveChk" checked> 含子資料夾
+          </label>
+          <div class="divider"></div>
+          <label class="ghost-btn" for="fileInput">選擇檔案</label>
+          <input id="fileInput" type="file"
+            accept="image/jpeg,image/jpg,image/tiff,image/heic,image/heif,.heic,.heif" multiple>
+          <div class="source-spacer"></div>
+          <button class="clear-btn" id="rescanBtn" hidden>重新掃描</button>
+          <button class="clear-btn" id="clearBtn">清除</button>
+        </div>
+        <div class="source-stats" id="sourceStats"></div>
+      </div>
 
-    <!-- ============ 來源列（全域） ============ -->
-    <div class="source-bar">
-        <button class="upload-btn" id="pickFolderBtn">開啟照片資料夾</button>
-        <label class="check" title="連同子資料夾裡的照片一起讀入">
-            <input type="checkbox" id="recursiveChk" checked> 包含子資料夾
-        </label>
-        <div class="divider"></div>
-        <label class="ghost-btn" for="fileInput">改用選擇檔案</label>
-        <input id="fileInput" type="file" accept="image/jpeg,image/jpg,image/tiff" multiple>
-        <div class="source-info" id="sourceInfo">尚未選擇來源</div>
-        <button class="clear-btn" id="rescanBtn" hidden>重新掃描</button>
-        <button class="clear-btn" id="clearBtn">清除</button>
-    </div>
+      <div class="notice warn" id="fsWarn" hidden></div>
 
-    <div class="notice warn" id="fsWarn" hidden></div>
-
-    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-wrap" id="progressWrap">
         <div class="progress-track">
-            <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-fill" id="progressFill"></div>
         </div>
         <span class="progress-label" id="progressLabel">處理中…</span>
-    </div>
+      </div>
 
-    <main>
-        <!-- ============ PHOTOS VIEW ============ -->
-        <section id="photosView" class="view active">
-            <div class="toolbar">
-                <div class="control-group">
-                    <label>每排卡片數</label>
-                    <input type="range" id="colSlider" min="1" max="8" value="4">
-                    <span class="col-count" id="colCount">4</span>
-                </div>
-                <div class="divider"></div>
-                <div class="control-group">
-                    <label>每頁張數</label>
-                    <select id="pageSizeSelect" class="mini-select">
-                        <option value="30">30</option>
-                        <option value="50" selected>50</option>
-                        <option value="100">100</option>
-                        <option value="200">200</option>
-                    </select>
-                </div>
-                <div class="photo-count" id="photoCount">尚未載入照片</div>
-            </div>
-
-            <details class="field-panel" id="fieldPanel">
-                <summary>選擇卡片下方顯示的 EXIF 欄位</summary>
-                <div class="chip-row" id="chipRow"></div>
-            </details>
-
-            <div id="grid" class="grid" style="grid-template-columns:repeat(4,1fr);"></div>
-            <div id="photosPagination" class="pagination"></div>
-            <div id="emptyState" class="empty-state">
-                <div class="glyph">◎</div>
-                <p>還沒有載入照片。</p>
-                <p>點「開啟照片資料夾」直接讀取本機資料夾——照片留在原地，不會上傳、不會複製一份到記憶體。</p>
-                <p class="dim">EXIF 與縮圖只在你翻到那一頁時才會讀取；縮圖由本機原圖產生，照片不會上傳。</p>
-            </div>
-        </section>
-
-        <!-- ============ STATS VIEW ============ -->
-        <section id="statsView" class="view">
-            <div class="toolbar">
-                <button class="upload-btn" id="scanAllBtn">分析全部照片的 EXIF</button>
-                <div class="photo-count" id="statsProgress">尚未載入照片</div>
-            </div>
-            <div class="stats-grid" id="statsGrid"></div>
-        </section>
-
-        <!-- ============ MANAGE VIEW ============ -->
-        <section id="manageView" class="view">
-            <div class="cat-legend" id="catLegend"></div>
-
-            <div class="manage-layout">
-                <div class="preview-panel">
-                    <h3>大圖預覽</h3>
-                    <div id="previewWrap"></div>
-                </div>
-
-                <div class="thumb-sidebar">
-                    <div class="apply-box">
-                        <button class="export-btn" id="applyBtn">套用整理（在原資料夾移動檔案）</button>
-                        <button class="ghost-btn wide" id="exportBtn" hidden>打包下載 .zip（相容模式）</button>
-                        <div class="apply-hint" id="applyHint"></div>
-                        <div class="apply-result" id="applyResult" hidden></div>
-                    </div>
-
-                    <div class="toolbar compact">
-                        <div class="control-group">
-                            <label>每排縮圖數</label>
-                            <input type="range" id="mgmtColSlider" min="2" max="6" value="3">
-                            <span class="col-count" id="mgmtColCount">3</span>
-                        </div>
-                        <label class="check">
-                            <input type="checkbox" id="hideDoneChk"> 只看未分類
-                        </label>
-                        <div class="photo-count" id="mgmtPhotoCount">尚未載入照片</div>
-                    </div>
-
-                    <div id="manageGrid" class="manage-grid" style="grid-template-columns:repeat(3,1fr);"></div>
-                    <div id="managePagination" class="pagination"></div>
-                    <div id="manageEmpty" class="empty-state">
-                        <div class="glyph">◎</div>
-                        <p>還沒有照片可以分類。</p>
-                        <p>先在上方選擇來源資料夾。</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ============ SETTINGS VIEW ============ -->
-        <section id="settingsView" class="view">
-            <div class="settings-head">
-                <div>
-                    <h2>照片分類</h2>
-                    <p class="dim">
-                        分類定義存在 <code>categories.json</code>，你在這裡的修改會存進瀏覽器，
-                        並可以匯出成 JSON 帶到別台電腦。<br>
-                        <b>移動</b>＝把檔案搬進該資料夾；<b>複製</b>＝原檔留著再複製一份；<b>只標記</b>＝不動檔案，只在畫面上做記號。
-                    </p>
-                </div>
-                <div class="settings-actions">
-                    <button class="ghost-btn" id="addCatBtn">＋ 新增分類</button>
-                    <button class="ghost-btn" id="exportCatBtn">匯出 JSON</button>
-                    <label class="ghost-btn" for="importCatInput">匯入 JSON</label>
-                    <input id="importCatInput" type="file" accept="application/json,.json">
-                    <button class="clear-btn" id="resetCatBtn">重設為預設</button>
-                </div>
-            </div>
-            <div class="cat-table" id="catTable"></div>
-        </section>
+      <div id="page-outlet" tabindex="-1" aria-live="polite">
+        <div class="state-block" role="status">
+          <div class="spinner" aria-hidden="true"></div>載入中…
+        </div>
+      </div>
     </main>
+  </div>
 
-    <dialog class="app-modal" id="appModal" aria-labelledby="appModalTitle" aria-describedby="appModalMessage">
-        <form method="dialog" class="app-modal-card">
-            <div class="app-modal-icon" id="appModalIcon" aria-hidden="true"></div>
-            <div class="app-modal-content">
-                <h2 id="appModalTitle"></h2>
-                <p id="appModalMessage"></p>
-                <div class="app-modal-actions">
-                    <button class="ghost-btn" id="appModalCancel" value="cancel">取消</button>
-                    <button class="export-btn" id="appModalConfirm" value="confirm">確定</button>
-                </div>
-            </div>
-        </form>
-    </dialog>
-
-    <script src="js/exif.js"></script>
-    <script src="js/categories.js"></script>
-    <script src="js/library.js"></script>
-    <script src="js/organize.js"></script>
-    <script src="js/app.js"></script>
+  <!-- HEIC 只在瀏覽器本機轉成可預覽的 JPEG；原始檔不會上傳或被替換。 -->
+  <script src="assets/vendor/heic2any.min.js"></script>
+  <!-- 照片引擎: 解碼圖片、解析 EXIF、來源管理、檔案搬移。 -->
+  <script src="js/engine/image.js"></script>
+  <script src="js/engine/exif.js"></script>
+  <script src="js/engine/categories.js"></script>
+  <script src="js/engine/library.js"></script>
+  <script src="js/engine/organize.js"></script>
+  <script type="module" src="js/core/main.js"></script>
 </body>
 
 </html>

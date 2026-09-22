@@ -151,8 +151,162 @@ const PMExif = (function () {
         return entry.value.trim() || null;
     }
 
-    /* ---------- 4. 解析入口 ---------- */
+    /* ---------- 4. HEIF / HEIC 容器 ---------- */
+    //
+    // HEIC 不是 JPEG, 沒有 APP1 區段。它是 ISOBMFF（跟 MP4 同一種盒狀結構）:
+    //
+    //   ftyp                        檔案型別, brand 認得出是不是 HEIF
+    //   meta                        中繼資料
+    //     ├ iinf → infe             每個項目的編號與型別, 其中一個 type 是 "Exif"
+    //     └ iloc                    每個項目在檔案裡的位置與長度
+    //   mdat                        真正的資料（影像與那塊 Exif）
+    //
+    // 找到 Exif 那一項的位置之後, 裡面裝的就是一般的 TIFF 結構,
+    // 後面直接交給上面那套 IFD 解析, 不必重寫一份。
+
+    const HEIF_BRANDS = new Set([
+        'heic', 'heix', 'heim', 'heis', 'hevc', 'hevx', 'hevm', 'hevs',
+        'mif1', 'msf1', 'heif', 'avif', 'avis',
+    ]);
+
+    function isHeifHeader(dv) {
+        if (dv.byteLength < 12) return false;
+        if (readString(dv, 4, 4) !== 'ftyp') return false;
+        if (HEIF_BRANDS.has(readString(dv, 8, 4).toLowerCase())) return true;
+        // 相容品牌列在主 brand 後面, 有些機器的主 brand 不在上面那張表裡。
+        const size = dv.getUint32(0);
+        for (let at = 16; at + 4 <= Math.min(size, dv.byteLength); at += 4) {
+            if (HEIF_BRANDS.has(readString(dv, at, 4).toLowerCase())) return true;
+        }
+        return false;
+    }
+
+    /** 走訪某個範圍裡的盒子, 回呼拿到 (型別, 內容起點, 內容長度)。回 false 就停。 */
+    function walkBoxes(dv, from, to, visit) {
+        let at = from;
+        while (at + 8 <= to) {
+            let size = dv.getUint32(at);
+            const type = readString(dv, at + 4, 4);
+            let head = 8;
+            if (size === 1) {
+                // 64 位元長度。這裡不會大到需要高 32 位元, 直接讀低位那半。
+                if (at + 16 > to) break;
+                size = dv.getUint32(at + 12);
+                head = 16;
+            } else if (size === 0) {
+                size = to - at;
+            }
+            if (size < head || at + size > to) break;
+            if (visit(type, at + head, size - head) === false) return;
+            at += size;
+        }
+    }
+
+    /** iinf: 找出 item_type 是 "Exif" 的那一項的編號。 */
+    function findExifItemId(dv, from, len) {
+        let itemId = null;
+        const version = dv.getUint8(from);
+        // FullBox: 1 byte version + 3 bytes flags, 接著是項目數（v0 是 16 位元, 之後 32 位元）。
+        const at = from + 4 + (version === 0 ? 2 : 4);
+        walkBoxes(dv, at, from + len, (type, body) => {
+            if (type !== 'infe') return;
+            const v = dv.getUint8(body);
+            if (v < 2) return;
+            const id = v === 2 ? dv.getUint16(body + 4) : dv.getUint32(body + 4);
+            const itemType = readString(dv, body + (v === 2 ? 8 : 10), 4);
+            if (itemType === 'Exif') itemId = id;
+        });
+        return itemId;
+    }
+
+    /** iloc: 這一項在檔案裡的位置與長度。只處理最常見的 construction_method 0。 */
+    function findItemLocation(dv, from, len, wantedId) {
+        const version = dv.getUint8(from);
+        let at = from + 4;
+        const sizes = dv.getUint8(at);
+        const offsetSize = sizes >> 4;
+        const lengthSize = sizes & 0xF;
+        const sizes2 = dv.getUint8(at + 1);
+        const baseOffsetSize = sizes2 >> 4;
+        const indexSize = version >= 1 ? (sizes2 & 0xF) : 0;
+        at += 2;
+        const count = version < 2 ? dv.getUint16(at) : dv.getUint32(at);
+        at += version < 2 ? 2 : 4;
+
+        const readInt = (pos, bytes) => {
+            if (bytes === 4) return dv.getUint32(pos);
+            if (bytes === 8) return dv.getUint32(pos) * 4294967296 + dv.getUint32(pos + 4);
+            if (bytes === 2) return dv.getUint16(pos);
+            return 0;
+        };
+
+        for (let i = 0; i < count && at < from + len; i++) {
+            const id = version < 2 ? dv.getUint16(at) : dv.getUint32(at);
+            at += version < 2 ? 2 : 4;
+            if (version >= 1) at += 2;                 // construction_method
+            at += 2;                                   // data_reference_index
+            const baseOffset = readInt(at, baseOffsetSize);
+            at += baseOffsetSize;
+            const extentCount = dv.getUint16(at);
+            at += 2;
+            for (let e = 0; e < extentCount; e++) {
+                at += indexSize;
+                const offset = readInt(at, offsetSize);
+                at += offsetSize;
+                const length = readInt(at, lengthSize);
+                at += lengthSize;
+                if (id === wantedId && e === 0) return { offset: baseOffset + offset, length };
+            }
+        }
+        return null;
+    }
+
+    /** 從 HEIF 的檔頭找出 Exif 那一塊在檔案裡的位置。 */
+    function locateHeifExif(dv) {
+        let found = null;
+        walkBoxes(dv, 0, dv.byteLength, (type, body, size) => {
+            if (type !== 'meta') return;
+            let itemId = null;
+            let iloc = null;
+            // meta 是 FullBox, 前 4 個位元組是 version + flags。
+            walkBoxes(dv, body + 4, body + size, (t, b, l) => {
+                if (t === 'iinf') itemId = findExifItemId(dv, b, l);
+                else if (t === 'iloc') iloc = { body: b, len: l };
+            });
+            if (itemId != null && iloc) found = findItemLocation(dv, iloc.body, iloc.len, itemId);
+            return false;   // meta 只有一個, 找完就不必再走
+        });
+        return found;
+    }
+
+    /* ---------- 5. 解析入口 ---------- */
     const HEADER_READ_BYTES = 262144; // 256KB
+
+    /** 這個位置是不是 TIFF 檔頭: "II" + 42 或 "MM" + 42。 */
+    function isTiffHeader(dv, at) {
+        if (at < 0 || at + 4 > dv.byteLength) return false;
+        const bom = dv.getUint16(at);
+        if (bom === 0x4949) return dv.getUint16(at + 2, true) === 42;
+        if (bom === 0x4D4D) return dv.getUint16(at + 2) === 42;
+        return false;
+    }
+
+    /** JPEG: 找出 APP1 裡那段 Exif 的起點。 */
+    function findJpegExif(dv) {
+        let offset = 2;
+        while (offset < dv.byteLength - 4) {
+            const marker = dv.getUint16(offset);
+            if ((marker & 0xFF00) !== 0xFF00) break;
+            const size = dv.getUint16(offset + 2);
+            if (marker === 0xFFE1) {
+                const tag = readString(dv, offset + 4, 6);
+                if (tag.indexOf("Exif") === 0) return offset + 4;
+            }
+            if (marker === 0xFFDA) break;
+            offset += 2 + size;
+        }
+        return null;
+    }
 
     /**
      * @param {File|Blob} file
@@ -162,25 +316,44 @@ const PMExif = (function () {
     async function extractExif(file, opts) {
         const wantThumb = !opts || opts.wantThumb !== false;
         const headerBuf = await file.slice(0, HEADER_READ_BYTES).arrayBuffer();
-        const dv = new DataView(headerBuf);
-        if (dv.byteLength < 4 || dv.getUint16(0) !== 0xFFD8) return { info: null, thumbBlob: null };
+        let dv = new DataView(headerBuf);
+        if (dv.byteLength < 4) return { info: null, thumbBlob: null };
 
-        let offset = 2;
+        // dv 的第 0 個位元組在原始檔案裡的位置。JPEG 是 0;
+        // HEIC 的 Exif 藏在檔案中間, 會另外切一段出來讀, 所以要記住它從哪裡開始。
+        let bufferBase = 0;
         let app1Offset = null;
-        while (offset < dv.byteLength - 4) {
-            const marker = dv.getUint16(offset);
-            if ((marker & 0xFF00) !== 0xFF00) break;
-            const size = dv.getUint16(offset + 2);
-            if (marker === 0xFFE1) {
-                const tag = readString(dv, offset + 4, 6);
-                if (tag.indexOf("Exif") === 0) { app1Offset = offset + 4; break; }
-            }
-            if (marker === 0xFFDA) break;
-            offset += 2 + size;
+        let container = 'jpeg';
+
+        if (dv.getUint16(0) === 0xFFD8) {
+            app1Offset = findJpegExif(dv);
+        } else if (isHeifHeader(dv)) {
+            container = 'heif';
+            const at = locateHeifExif(dv);
+            if (!at || !at.length) return { info: null, thumbBlob: null };
+            const block = await file.slice(at.offset, at.offset + at.length).arrayBuffer();
+            dv = new DataView(block);
+            bufferBase = at.offset;
+            if (dv.byteLength < 12) return { info: null, thumbBlob: null };
+            //
+            // ExifDataBlock: 4 個位元組的偏移量, 接著才是 Exif 內容。蘋果寫的是
+            // 偏移 6 + "Exif\0\0" + TIFF, 但也有檔案直接接 TIFF, 所以三種都試:
+            // 認的是 TIFF 檔頭的位元組順序標記（II 或 MM）, 不是前綴字串。
+            //
+            const skip = dv.getUint32(0);
+            const tiffAt = [
+                readString(dv, 4, 4) === 'Exif' ? 10 : null,   // 4 + "Exif\0\0"
+                4 + skip,
+                4,
+                0,
+            ].find((at) => at != null && isTiffHeader(dv, at));
+            if (tiffAt == null) return { info: null, thumbBlob: null };
+            app1Offset = tiffAt - 6;   // 下面會 +6 補回來
         }
         if (app1Offset === null) return { info: null, thumbBlob: null };
 
         const tiffStart = app1Offset + 6;
+        if (tiffStart + 8 > dv.byteLength) return { info: null, thumbBlob: null };
         const little = dv.getUint16(tiffStart) === 0x4949;
 
         const { info, makerNoteEntry, ifd0Next } = parseStandardExif(dv, tiffStart, little);
@@ -202,7 +375,7 @@ const PMExif = (function () {
                 const lenEntry = ifd1.tags.get(0x0202);
                 if (offEntry && lenEntry && typeof offEntry.value === 'number'
                     && typeof lenEntry.value === 'number' && lenEntry.value > 0) {
-                    const start = tiffStart + offEntry.value;
+                    const start = bufferBase + tiffStart + offEntry.value;
                     const buf = await file.slice(start, start + lenEntry.value).arrayBuffer();
                     if (buf.byteLength >= 2 && new DataView(buf).getUint16(0) === 0xFFD8) {
                         thumbBlob = new Blob([buf], { type: 'image/jpeg' });
@@ -211,10 +384,11 @@ const PMExif = (function () {
             } catch (e) { thumbBlob = null; }
         }
 
+        if (info) info.container = container;
         return { info, thumbBlob };
     }
 
-    /* ---------- 5. EXIF Orientation → CSS transform ---------- */
+    /* ---------- 6. EXIF Orientation → CSS transform ---------- */
     const ORIENTATION_TRANSFORM = {
         1: '', 2: 'scaleX(-1)', 3: 'rotate(180deg)', 4: 'scaleX(-1) rotate(180deg)',
         5: 'scaleX(-1) rotate(270deg)', 6: 'rotate(90deg)', 7: 'scaleX(-1) rotate(90deg)', 8: 'rotate(270deg)'
@@ -250,7 +424,8 @@ const PMExif = (function () {
                 img.style.width = 'auto';
                 img.style.height = 'auto';
                 img.style.maxWidth = '100%';
-                img.style.maxHeight = '64vh';
+                // 交給外框決定能佔多高（預覽面板會自己撐滿剩下的空間）。
+                img.style.maxHeight = '100%';
             }
         } else {
             img.style.transform = (ORIENTATION_TRANSFORM[o] || '') + (needsAxisSwap ? ' scale(1.35)' : '');

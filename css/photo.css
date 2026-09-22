@@ -1,0 +1,1584 @@
+/* css/photo.css — 照片管理各頁的版面。
+   這一份是從舊版 style.css 原樣搬過來的: 照片檢視／統計／整理分類／分類設定
+   的排版維持原本的樣子, 只把配色接到 theme.css 的變數上, 字體改成全站字體。
+   外殼（側邊欄、路由、按鈕、對話框）已經改用 OnlineTools 那一套。 */
+
+::selection {
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
+/* ---------- toolbar ---------- */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 22px;
+}
+
+.upload-btn {
+    font-family: var(--font-family);
+    font-weight: 600;
+    font-size: 13px;
+    background: var(--accent);
+    color: var(--on-accent);
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    transition: filter .15s ease;
+}
+
+.upload-btn:hover {
+    filter: brightness(1.1);
+}
+
+input[type=file] {
+    display: none;
+}
+
+.toolbar .divider {
+    width: 1px;
+    align-self: stretch;
+    background: var(--line);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: var(--control-height);
+}
+
+.control-group label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--font-family);
+    /* 標籤被擠成兩行會把整列的高度撐開, 一排東西就不齊了。 */
+    white-space: nowrap;
+}
+
+/* 滑桿的長相（圓角軌道與拇指）統一在 tools.css, 這裡只收一下寬度。 */
+.toolbar input[type=range] {
+    width: 130px;
+}
+
+.col-count {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    min-width: 16px;
+    text-align: center;
+}
+
+.photo-count {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--font-family);
+    margin-left: auto;
+}
+
+.photo-count,
+.page-info {
+    min-height: var(--control-height);
+    display: inline-flex;
+    align-items: center;
+}
+
+.clear-btn {
+    font-family: var(--font-family);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: 7px 14px;
+    transition: all .15s ease;
+}
+
+.clear-btn:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* ---------- EXIF 欄位開關（用在對話框裡） ---------- */
+/* 關著是一顆安靜的灰底, 開著就填上主色 —— 跟分頁鈕、工具開關一致。 */
+.chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip {
+    height: 32px;
+    padding: 0 12px;
+    font-family: var(--font-family);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--bg-3);
+    border: 1px solid transparent;
+    /* 32px 的短邊, 6px 圓角在 1/3 以內。 */
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--duration-fast) var(--ease),
+                color var(--duration-fast) var(--ease),
+                border-color var(--duration-fast) var(--ease),
+                transform var(--duration-fast) var(--ease);
+}
+
+.chip:hover {
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.chip:active {
+    transform: scale(0.97);
+}
+
+.chip:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+}
+
+.chip.on {
+    background: var(--primary);
+    color: var(--on-primary);
+    border-color: transparent;
+}
+
+.chip.on:hover {
+    background: var(--primary-hover);
+    color: var(--on-primary);
+}
+
+/* ---------- grid & cards ---------- */
+.grid {
+    display: grid;
+    gap: 18px;
+}
+
+/* 照片卡片。要限定在 .grid 底下: 全站共用的 .card（components.css）也叫這個名字,
+   不限定的話首頁那張卡片會被這裡的排版蓋掉。 */
+.grid .card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+/* components.css 的相鄰卡片外距不適用於 grid，否則只有第一張會比其他張高 16px。 */
+.grid .card + .card { margin-top: 0; }
+
+.thumb-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: var(--thumb-bg);
+    overflow: hidden;
+}
+
+.thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    image-orientation: none;
+}
+
+.card-body {
+    padding: 12px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-fname {
+    font-family: var(--font-family);
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+}
+
+.exif-list {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.exif-list .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 1px solid var(--line);
+    padding-top: 5px;
+}
+
+.exif-list .row:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+.exif-list .k {
+    color: var(--muted);
+    /* 欄位名不折: 卡片窄的時候折起來會變成一個字一行, 整張卡看起來像壞掉。 */
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+.exif-list .v {
+    color: var(--text);
+    text-align: right;
+    min-width: 0;
+    /* 值可以換行, 但長字串（鏡頭名）要斷得下來。 */
+    overflow-wrap: anywhere;
+}
+
+.exif-empty {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+}
+
+.empty-state .glyph {
+    font-size: 30px;
+    color: var(--accent);
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    font-size: 13px;
+    margin: 4px 0;
+}
+
+/* ---------- stats view ---------- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width:900px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.stat-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px 20px;
+}
+
+.stat-title {
+    font-family: var(--font-family);
+    font-size: 13.5px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    color: var(--text);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.stat-title .sub {
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--muted);
+    font-family: var(--font-mono);
+}
+
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.bar-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    width: 74px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.bar-track {
+    flex: 1;
+    height: 13px;
+    background: var(--bg-3);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+}
+
+.bar-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text);
+    width: 26px;
+}
+
+.stat-empty {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 8px;
+}
+
+/* ---------- manage view (照片管理／分類／Master-Detail 版面) ---------- */
+.manage-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 20px;
+    /* 兩欄等高, 高度由 JS 設成「視窗剩下的空間」——
+       捲動只發生在右邊的縮圖欄裡, 左邊的大圖不會跟著捲走。 */
+    align-items: stretch;
+    min-height: 0;
+}
+
+@media (max-width:900px) {
+    .manage-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 右側縮圖側欄的小格網 */
+.manage-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.thumb-card {
+    position: relative;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 1/1;
+    background: var(--thumb-bg);
+    border: 2px solid transparent;
+    transition: border-color .1s ease, box-shadow .12s ease, transform .12s ease;
+}
+.thumb-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    border: 4px solid var(--accent);
+    border-radius: calc(var(--radius-sm) - 1px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--easing-standard);
+}
+
+.thumb-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    image-orientation: none;
+}
+
+/* 當前焦點：加粗邊框 + 高對比外發光，確保快速瀏覽時一眼就能看出焦點在哪一張 */
+.thumb-card.selected,
+.thumb-card.focused {
+    border-color: transparent;
+    box-shadow: none;
+    z-index: 2;
+}
+.thumb-card.selected::after,
+.thumb-card.focused::after { opacity: 1; }
+
+.thumb-card .cat-badge {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    right: 6px;
+    font-family: var(--font-family);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--on-cat);
+    padding: 3px 7px;
+    border-radius: 5px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.thumb-card .fname-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: #fff;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent);
+    padding: 5px 6px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 左側大圖預覽區(Master) */
+.preview-panel {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 面板裡真正裝東西的是這一層, 所以要它來當撐滿高度的直向排列。 */
+.preview-panel > #previewWrap {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+}
+
+.preview-panel h3 {
+    font-family: var(--font-family);
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: var(--text);
+}
+
+.preview-image-box {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    /* 撐滿面板剩下的高度: 資訊收合時圖就大, 展開時圖自己讓位。 */
+    flex: 1 1 auto;
+    min-height: 0;
+    border-radius: var(--radius-sm);
+    background: var(--thumb-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.preview-image-box img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    image-orientation: none;
+}
+
+.preview-cat-badge {
+    display: inline-block;
+    font-family: var(--font-family);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--on-cat);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+}
+
+.preview-exif .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    border-top: 1px solid var(--line);
+    padding: 6px 0;
+}
+
+.preview-exif .row:first-child {
+    border-top: none;
+}
+
+.preview-exif .k {
+    color: var(--muted);
+}
+
+.preview-exif .v {
+    color: var(--text);
+    text-align: right;
+}
+
+.kbd-hint {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+}
+
+.kbd-hint kbd {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--text);
+}
+
+.export-btn {
+    font-family: var(--font-family);
+    font-weight: 600;
+    font-size: 13px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    transition: filter .15s ease;
+    margin-bottom: 10px;
+}
+
+.export-btn:hover {
+    filter: brightness(1.15);
+}
+
+.export-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ---------- progress bar (chunked processing) ---------- */
+.progress-wrap {
+    position: fixed;
+    left: 50%;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    z-index: var(--z-progress);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(520px, calc(100vw - 32px));
+    padding: 9px 16px;
+    margin: 0;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, 8px);
+    transition:
+        opacity var(--duration-default) var(--easing-standard),
+        transform var(--duration-default) var(--easing-standard),
+        visibility 0s linear var(--duration-default);
+}
+
+.progress-wrap.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+    transition-delay: 0s;
+}
+
+.progress-track {
+    flex: 1;
+    max-width: 360px;
+    height: 6px;
+    background: var(--bg-3);
+    border-radius: 1.5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width .12s ease;
+}
+
+.progress-label {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+/* ---------- pagination ---------- */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 22px;
+}
+
+/*
+ * 浮在畫面底部的換頁列。
+ * 一頁有幾十張照片, 要換頁得先捲到最底 —— sticky 讓它在捲動時貼著視窗下緣,
+ * 捲到底時再自然落回內容的最後一列。空的時候（只有一頁）不要留白條, 所以
+ * :empty 整個收掉。
+ */
+.pagination.is-floating {
+    position: sticky;
+    bottom: 14px;
+    z-index: 3;
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+    padding: 8px 12px;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg-2);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+
+.pagination.is-floating:empty {
+    display: none;
+}
+
+.page-btn {
+    font-family: var(--font-family);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all .15s ease;
+    height: var(--control-height);
+}
+
+.page-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.page-btn:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* ============================================================
+   來源列
+   ============================================================ */
+.source-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.source-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.source-spacer {
+    flex: 1 1 auto;
+}
+
+/* 這一排數字本來在首頁。首頁拿掉之後就住在這裡, 一直跟著來源。 */
+.source-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 20px;
+}
+
+.source-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+}
+
+.source-stat-value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 24ch;
+}
+
+.source-stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    order: -1;
+}
+
+.source-controls .divider {
+    width: 1px;
+    align-self: stretch;
+    background: var(--line);
+}
+
+.ghost-btn {
+    display: inline-block;
+    font-family: var(--font-family);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 9px 15px;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+
+.ghost-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.ghost-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.ghost-btn.wide {
+    width: 100%;
+    text-align: center;
+}
+
+.upload-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    padding: 3px 12px;
+    font-size: var(--text-supporting);
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.check input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.check:hover { color: var(--text); border-color: var(--cffy-theme-surface-a40); }
+.check:has(input:checked) {
+    color: var(--on-primary);
+    background: var(--primary);
+    border-color: var(--border);
+    /* 與照片編輯的開關相同：選取底色和外框之間保留一圈間距。 */
+    box-shadow: inset 0 0 0 3px var(--card-bg);
+}
+.check:has(input:focus-visible) { outline: var(--focus-ring); outline-offset: 2px; }
+
+.mini-select,
+.cat-row select {
+    font-family: var(--font-family);
+    font-size: 12.5px;
+    color: var(--text);
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 6px 9px;
+}
+
+.notice {
+    margin: 0;
+    padding: 11px 32px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    border-bottom: 1px solid var(--line);
+    color: var(--text);
+}
+
+.notice.warn {
+    background: rgba(255, 188, 94, 0.10);
+    border-left: 3px solid var(--cffy-theme-warning-a0);
+}
+
+.notice code,
+.dim code,
+.apply-hint code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    background: var(--bg-3);
+    border-radius: 4px;
+    padding: 1px 5px;
+}
+
+.dim {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* 拖曳提示 */
+body.dragging::after {
+    content: "放開以載入照片或資料夾";
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family);
+    font-size: 18px;
+    color: var(--accent);
+    background: rgba(0, 0, 0, .45);
+    border: 3px dashed var(--accent);
+    pointer-events: none;
+}
+
+/* ============================================================
+   分類圖例（整理分類頁上方）
+   ============================================================ */
+.cat-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 18px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 5px 12px 5px 5px;
+    cursor: pointer;
+    font-family: var(--font-family);
+    color: var(--text);
+    transition: all .12s ease;
+}
+
+.legend-item:hover {
+    border-color: var(--accent);
+}
+
+.legend-key {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--on-cat);
+    flex-shrink: 0;
+}
+
+.legend-key.plain {
+    background: var(--bg-2);
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.legend-name {
+    font-size: 12.5px;
+    font-weight: 500;
+}
+
+.legend-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+}
+
+.legend-action {
+    font-size: 10px;
+    color: var(--muted);
+    border-left: 1px solid var(--line);
+    padding-left: 8px;
+}
+
+/* ============================================================
+   套用整理
+   ============================================================ */
+.apply-box {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 14px;
+}
+
+.apply-box .export-btn {
+    width: 100%;
+}
+
+.apply-hint {
+    margin-top: 10px;
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.apply-hint b {
+    color: var(--text);
+}
+
+.plan-row {
+    display: block;
+    margin-top: 3px;
+}
+
+.apply-result {
+    margin-top: 10px;
+    padding: 9px 11px;
+    border-radius: var(--radius-sm);
+    font-size: 11.5px;
+    line-height: 1.7;
+}
+
+.apply-result.ok {
+    background: rgba(125, 255, 149, .10);
+    border: 1px solid rgba(125, 255, 149, .35);
+}
+
+.apply-result.has-error {
+    background: var(--danger-dim);
+    border: 1px solid var(--danger);
+}
+
+.toolbar.compact {
+    padding: 10px 14px;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+/* ============================================================
+   分類設定頁
+   ============================================================ */
+.settings-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.settings-head h2 {
+    font-family: var(--font-family);
+    font-size: 16px;
+    margin: 0 0 6px;
+}
+
+.settings-head p {
+    margin: 0;
+    max-width: 640px;
+}
+
+.settings-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.cat-table {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 6px 14px 14px;
+}
+
+.cat-row {
+    display: grid;
+    grid-template-columns: 62px minmax(120px, 1.2fr) minmax(120px, 1.2fr) 54px 92px 92px;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+}
+
+.cat-row.head {
+    border-top: none;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    padding: 10px 0 6px;
+}
+
+@media (max-width: 780px) {
+    .cat-row {
+        grid-template-columns: 54px 1fr 1fr;
+    }
+
+    .cat-row.head {
+        display: none;
+    }
+}
+
+.cat-row input[type=text] {
+    font-family: var(--font-family);
+    font-size: 12.5px;
+    color: var(--text);
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 7px 9px;
+    width: 100%;
+}
+
+.cat-row input.key-input {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    border-width: 2px;
+    padding: 6px 0;
+}
+
+.cat-row input[type=color] {
+    width: 100%;
+    height: var(--control-height);
+    padding: 2px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.cat-tools {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+.icon-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    width: 26px;
+    height: 26px;
+    color: var(--muted);
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all .12s ease;
+}
+
+.icon-btn:hover:not(:disabled) {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.icon-btn.danger:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+.icon-btn:disabled {
+    opacity: .3;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   其他小元件
+   ============================================================ */
+.thumb-loading {
+    opacity: 0;
+}
+
+.thumb-wrap img,
+.thumb-card img {
+    transition: opacity .2s ease;
+}
+
+/* ---------- 卡片上的編輯快捷 ---------- */
+/* 只有一顆按鈕, 按下去才挑工具 —— 以後編輯工具再多, 縮圖上也只會有這一顆。
+   絕對定位疊在縮圖上, 出現或消失都不會動到卡片的大小。 */
+.card-open {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    /* 34px 的短邊, 10px 圓角在 1/3 以內。 */
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    /* 不用 backdrop-filter: 一頁有幾十張卡片, 每顆都是一個獨立的合成層,
+       捲動與開對話框時會整片重算。實心底色在縮圖上一樣看得清楚。 */
+    background: rgba(18, 18, 18, 0.86);
+    color: #fff;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity var(--duration-fast) var(--ease),
+                transform var(--duration-fast) var(--ease),
+                background var(--duration-fast) var(--ease);
+}
+
+.grid .card:hover .card-open,
+.grid .card:focus-within .card-open {
+    opacity: 1;
+    transform: none;
+}
+
+.card-open:hover {
+    background: var(--primary);
+    color: var(--on-primary);
+    border-color: transparent;
+}
+
+.card-open:active {
+    transform: scale(0.94);
+}
+
+.card-open:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+}
+
+/* 沒有滑鼠的裝置本來就沒有 hover, 直接讓它一直在。 */
+@media (hover: none) {
+    .card-open {
+        opacity: 1;
+        transform: none;
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* 整張縮圖都可以點 —— 點哪裡都會跳出工具清單。 */
+.grid .thumb-wrap {
+    cursor: pointer;
+}
+
+.card-cat-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--on-cat);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+}
+
+.thumb-card.organized {
+    opacity: .55;
+}
+.thumb-card.organized.selected { opacity: 1; }
+
+.cat-badge.done,
+.preview-cat-badge.done {
+    background: var(--cffy-theme-success-a0);
+    color: var(--on-cat);
+}
+
+.preview-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
+
+.thumb-sidebar {
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    /* 捲動條跟內容之間留一點距離。 */
+    padding-right: 8px;
+}
+
+@media (max-width: 900px) {
+    .source-bar {
+        padding: 12px 14px;
+    }
+
+    .manage-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
+/* ============================================================
+   同一列的控制項一樣高
+   ------------------------------------------------------------
+   一排裡面有按鈕、下拉、滑桿、勾選框, 高矮不一整排就會看起來是歪的。
+   全部吃同一個 --control-height。
+   ============================================================ */
+.source-controls .upload-btn,
+.source-controls .ghost-btn,
+.source-controls .clear-btn,
+.source-controls .check,
+.toolbar .upload-btn,
+.toolbar .ghost-btn,
+.toolbar .clear-btn,
+.toolbar .mini-select,
+.toolbar .check,
+.toolbar input[type=range],
+.settings-actions .ghost-btn,
+.settings-actions .clear-btn,
+.apply-box .export-btn,
+.apply-box .ghost-btn {
+    height: var(--control-height);
+    padding-block: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 分類設定的表格列: 輸入框、顏色、下拉、小按鈕也切齊。 */
+.cat-row input,
+.cat-row select,
+.cat-row .icon-btn {
+    height: var(--control-height);
+}
+.cat-row .icon-btn {
+    width: var(--control-height);
+}
+
+
+/* ============================================================
+   覆蓋在大圖底部的照片資訊（預設收合）
+   ============================================================ */
+.preview-info {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 2;
+    max-height: 72%;
+    border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    background: color-mix(in srgb, var(--bg-2) 72%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    overflow: hidden;
+    transition: background-color var(--duration-fast) var(--easing-standard);
+}
+.preview-info[open] {
+    background: color-mix(in srgb, var(--bg-2) 90%, transparent);
+    overflow-y: auto;
+}
+.preview-info > summary {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    min-height: var(--control-height);
+    padding: 9px 12px;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+}
+.preview-summary-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.preview-info > summary::-webkit-details-marker { display: none; }
+.preview-info > summary::before {
+    content: "▸";
+    color: var(--muted);
+    font-size: 11px;
+}
+.preview-info[open] > summary::before { content: "▾"; }
+.preview-info[open] > summary {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg-2) 94%, transparent);
+}
+.preview-info-body { padding: 10px 12px 12px; }
+.preview-info-body > *:last-child { margin-bottom: 0; }
+
+/* ---------- 工具列上的按鈕徽章（篩選條件數、欄位數） ---------- */
+.ghost-btn.with-badge {
+    gap: 7px;
+}
+
+.btn-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    /* 20px 的短邊, 6px 圓角在 1/3 以內。 */
+    border-radius: var(--radius-sm);
+    background: var(--primary);
+    color: var(--on-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.btn-badge.is-quiet {
+    background: var(--bg-3);
+    color: var(--muted);
+}
+
+/* ---------- 統計: 直方圖與甜甜圈 ---------- */
+.bar-label {
+    /* 名稱太長就切掉, 一列一項才不會被撐開。 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-scroll {
+    margin-top: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.chart-columns {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.col-bar {
+    fill: var(--accent);
+}
+
+.col-axis {
+    stroke: var(--line);
+    stroke-width: 1;
+}
+
+.col-tick {
+    fill: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-anchor: middle;
+}
+
+.chart-donut {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.chart-donut svg {
+    flex: 0 0 auto;
+}
+
+.donut-total {
+    fill: var(--text);
+    font-family: var(--font-mono);
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.chart-legend {
+    flex: 1 1 140px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chart-legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    min-width: 0;
+}
+
+.legend-swatch {
+    width: 10px;
+    height: 10px;
+    /* 10px 的短邊, 3px 圓角在 1/3 以內。 */
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.chart-legend .legend-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-legend .legend-value {
+    font-family: var(--font-mono);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* ============================================================
+   細節: 按下去的回饋與卡片的浮起
+   ------------------------------------------------------------
+   動作要有「接到了」的感覺: 按下去縮一點點, 放開回彈;
+   曲線統一用 --ease（進場快、收尾慢）, 全站的動作才像同一套。
+   ============================================================ */
+.upload-btn,
+.ghost-btn,
+.clear-btn,
+.export-btn,
+.icon-btn,
+.legend-item,
+.page-btn {
+    transition: background var(--duration-fast) var(--ease),
+                border-color var(--duration-fast) var(--ease),
+                color var(--duration-fast) var(--ease),
+                transform var(--duration-fast) var(--ease);
+}
+
+.upload-btn:active,
+.ghost-btn:active,
+.clear-btn:active,
+.export-btn:active,
+.icon-btn:active,
+.legend-item:active,
+.page-btn:active {
+    transform: scale(0.97);
+}
+
+.upload-btn:disabled:active,
+.export-btn:disabled:active,
+.page-btn:disabled:active {
+    transform: none;
+}
+
+/* 縮圖卡片: 滑過時輕輕浮起來一點, 邊框跟著亮。 */
+.grid .card {
+    transition: transform var(--duration-default) var(--ease),
+                border-color var(--duration-fast) var(--ease);
+}
+
+.grid .card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border);
+}
+
+.thumb-card {
+    transition: transform var(--duration-fast) var(--ease),
+                border-color var(--duration-fast) var(--ease);
+}
+
+.thumb-card:active {
+    transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .grid .card:hover,
+    .thumb-card:active,
+    .upload-btn:active,
+    .ghost-btn:active,
+    .clear-btn:active,
+    .export-btn:active,
+    .icon-btn:active,
+    .page-btn:active {
+        transform: none;
+    }
+}
+
+/* ---------- 窄螢幕: 每排張數自己收斂 ---------- */
+/* 「每排」是使用者在桌機設的, 拿到手機上照用會變成一排四張指甲大的圖。
+   這裡直接蓋掉 JS 寫的行內值, 螢幕多寬就放幾張。 */
+@media (max-width: 560px) {
+    #grid.grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .manage-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 380px) {
+    #grid.grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
