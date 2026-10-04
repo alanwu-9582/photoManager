@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/tools.css">
+  <link rel="stylesheet" href="css/controls.css">
   <link rel="stylesheet" href="css/pages.css">
   <link rel="stylesheet" href="css/photo.css">
 </head>
@@ -53,7 +54,10 @@
       <div class="nav-group" id="primary-nav"></div>
       <div class="nav-spacer"></div>
       <div class="nav-foot" id="nav-foot">
-        <div>Photo Manager</div>
+        <button type="button" id="appearanceBtn" class="nav-foot-btn" title="外觀: 跟著系統">
+          <span class="svg-icon icon-sun" style="width:17px;height:17px" aria-hidden="true"></span>
+          <span class="nav-foot-label" id="appearanceLabel">跟著系統</span>
+        </button>
       </div>
     </nav>
 
@@ -79,17 +83,18 @@
 
       <div class="notice warn" id="fsWarn" hidden></div>
 
-      <div class="progress-wrap" id="progressWrap">
-        <div class="progress-track">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <span class="progress-label" id="progressLabel">處理中…</span>
-      </div>
-
       <div id="page-outlet" tabindex="-1" aria-live="polite">
         <div class="state-block" role="status">
           <div class="spinner" aria-hidden="true"></div>載入中…
         </div>
+      </div>
+
+      <!-- 狀態列: 來源 · 數量 · 狀態 · 進度（介面設計規範 §6.1） -->
+      <div class="status-bar" id="statusBar">
+        <span class="status-text" id="statusText">尚未載入照片</span>
+        <span class="status-spacer"></span>
+        <span class="status-job" id="statusJob" hidden></span>
+        <span class="status-track" id="statusTrack" hidden><span class="status-fill" id="statusFill"></span></span>
       </div>
     </main>
   </div>

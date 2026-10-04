@@ -10,6 +10,8 @@
 const PMCategories = (function () {
 
     const STORAGE_KEY = 'pm.categories.v2';
+    const PROFILE_KEY = 'pm.categoryProfiles.v1';
+    const DEFAULT_PROFILE = '預設';
     const DEFAULT_URL = 'categories.json';
     const ACTIONS = ['move', 'copy', 'keep'];
     const ACTION_LABEL = { move: '移動', copy: '複製', keep: '只標記' };
@@ -120,16 +122,53 @@ const PMCategories = (function () {
         return defaults;
     }
 
+    /* ---------- 設定檔（Profile） ----------
+       同一套分類不會適用所有情境: 拍活動、拍商品、整理舊照片各有各的分法。
+       設定檔就是幾套分類, 隨時切換; 切過去之後所有編輯都記在那一套裡。 */
+    let profiles = {};
+    let activeProfile = DEFAULT_PROFILE;
+
+    function loadProfiles() {
+        try {
+            const txt = localStorage.getItem(PROFILE_KEY);
+            const data = txt ? JSON.parse(txt) : null;
+            if (data && data.profiles && Object.keys(data.profiles).length) {
+                profiles = data.profiles;
+                activeProfile = profiles[data.active] ? data.active : Object.keys(profiles)[0];
+                return true;
+            }
+        } catch (e) { /* 壞掉就當作沒有 */ }
+        return false;
+    }
+
+    function saveProfiles() {
+        profiles[activeProfile] = list.map(c => ({ ...c }));
+        try {
+            localStorage.setItem(PROFILE_KEY,
+                JSON.stringify({ version: 1, active: activeProfile, profiles }));
+        } catch (e) {
+            console.warn('無法儲存分類設定檔：', e);
+        }
+    }
+
     async function init() {
         await loadDefaults();
-        let saved = null;
-        try {
-            const txt = localStorage.getItem(STORAGE_KEY);
-            if (txt) saved = JSON.parse(txt);
-        } catch (e) { saved = null; }
-
-        const savedList = saved && Array.isArray(saved.categories) ? normalizeList(saved.categories) : [];
-        list = savedList.length ? savedList : defaults.map(c => ({ ...c }));
+        if (loadProfiles()) {
+            list = normalizeList(profiles[activeProfile]);
+            if (!list.length) list = defaults.map(c => ({ ...c }));
+        } else {
+            // 從舊版（只有一套分類）升級: 把它變成「預設」這一套。
+            let saved = null;
+            try {
+                const txt = localStorage.getItem(STORAGE_KEY);
+                if (txt) saved = JSON.parse(txt);
+            } catch (e) { saved = null; }
+            const savedList = saved && Array.isArray(saved.categories) ? normalizeList(saved.categories) : [];
+            list = savedList.length ? savedList : defaults.map(c => ({ ...c }));
+            profiles = { [DEFAULT_PROFILE]: list.map(c => ({ ...c })) };
+            activeProfile = DEFAULT_PROFILE;
+            saveProfiles();
+        }
         emit();
         return list;
     }
@@ -140,7 +179,67 @@ const PMCategories = (function () {
         } catch (e) {
             console.warn('無法儲存分類設定：', e);
         }
+        saveProfiles();
         emit();
+    }
+
+    function profileNames() { return Object.keys(profiles); }
+    function activeProfileName() { return activeProfile; }
+
+    function switchProfile(name) {
+        if (!profiles[name] || name === activeProfile) return false;
+        saveProfiles();                       // 先把目前這一套存好
+        activeProfile = name;
+        list = normalizeList(profiles[name]);
+        if (!list.length) list = defaults.map(c => ({ ...c }));
+        saveProfiles();
+        emit();
+        return true;
+    }
+
+    function uniqueProfileName(base) {
+        let name = String(base || '新設定檔').trim() || '新設定檔';
+        let i = 2;
+        while (profiles[name]) name = `${base} ${i++}`;
+        return name;
+    }
+
+    /** 建一套新的。copyCurrent = 從目前這一套複製, 否則用內建預設。 */
+    function createProfile(name, copyCurrent) {
+        const key = uniqueProfileName(name);
+        saveProfiles();
+        profiles[key] = (copyCurrent ? list : defaults).map(c => ({ ...c, id: newId() }));
+        activeProfile = key;
+        list = normalizeList(profiles[key]);
+        saveProfiles();
+        emit();
+        return key;
+    }
+
+    function renameProfile(oldName, newName) {
+        if (!profiles[oldName]) return oldName;
+        const clean = String(newName || '').trim();
+        if (!clean || clean === oldName) return oldName;
+        const key = profiles[clean] ? uniqueProfileName(clean) : clean;
+        profiles = Object.fromEntries(Object.entries(profiles)
+            .map(([k, v]) => [k === oldName ? key : k, v]));
+        if (activeProfile === oldName) activeProfile = key;
+        saveProfiles();
+        emit();
+        return key;
+    }
+
+    /** 最後一套不給刪 —— 沒有分類的話整個整理流程就不能用了。 */
+    function deleteProfile(name) {
+        if (!profiles[name] || Object.keys(profiles).length <= 1) return false;
+        delete profiles[name];
+        if (activeProfile === name) {
+            activeProfile = Object.keys(profiles)[0];
+            list = normalizeList(profiles[activeProfile]);
+        }
+        saveProfiles();
+        emit();
+        return true;
     }
 
     /* ---------- 讀取 ---------- */
@@ -231,6 +330,7 @@ const PMCategories = (function () {
     return {
         init, save, all, byId, byKey, add, update, remove, move, reset,
         toJSON, importJSON, onChange, actionLabel, sanitizeFolder,
+        profileNames, activeProfileName, switchProfile, createProfile, renameProfile, deleteProfile,
         ACTIONS, ACTION_LABEL,
     };
 })();

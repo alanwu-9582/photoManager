@@ -56,6 +56,12 @@
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
 }
+.icon-sun { -webkit-mask-image: url("../assets/icons/sun.svg"); mask-image: url("../assets/icons/sun.svg"); }
+.icon-moon { -webkit-mask-image: url("../assets/icons/moon.svg"); mask-image: url("../assets/icons/moon.svg"); }
+.icon-monitor { -webkit-mask-image: url("../assets/icons/monitor.svg"); mask-image: url("../assets/icons/monitor.svg"); }
+.icon-gear { -webkit-mask-image: url("../assets/icons/gear.svg"); mask-image: url("../assets/icons/gear.svg"); }
+.icon-group { -webkit-mask-image: url("../assets/icons/group.svg"); mask-image: url("../assets/icons/group.svg"); }
+.icon-sliders-2 { -webkit-mask-image: url("../assets/icons/sliders-2.svg"); mask-image: url("../assets/icons/sliders-2.svg"); }
 .icon-home { -webkit-mask-image: url("../assets/icons/home.svg"); mask-image: url("../assets/icons/home.svg"); }
 .icon-book { -webkit-mask-image: url("../assets/icons/book.svg"); mask-image: url("../assets/icons/book.svg"); }
 .icon-search { -webkit-mask-image: url("../assets/icons/search.svg"); mask-image: url("../assets/icons/search.svg"); }

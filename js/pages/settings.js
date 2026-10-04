@@ -3,7 +3,7 @@
 // 這一頁刻意不訂閱 onLibraryChange: 每個輸入框都是即時儲存, 若跟著全域事件
 // 重建整張表格, 正在打字的 input 會被換掉而失去焦點。表格重畫由各操作自己決定。
 
-import { confirmDialog, alertDialog } from "../app/dialog.js";
+import { confirmDialog, alertDialog, promptDialog } from "../app/dialog.js";
 import { notify } from "../ui/notifications.js";
 import { debounce, saveMarks } from "../app/state.js";
 
@@ -109,6 +109,77 @@ function renderCatTable() {
   });
 }
 
+/* ============================================================
+   設定檔
+   ------------------------------------------------------------
+   同一套分類不會適用所有情境: 拍活動、拍商品、整理舊照片各有各的分法。
+   這一排就是在幾套分類之間切換, 切過去之後所有編輯都記在那一套裡。
+   ============================================================ */
+function renderProfiles() {
+  const select = $("profileSelect");
+  if (!select) return;
+  const names = PMCategories.profileNames();
+  select.replaceChildren(...names.map((n) => {
+    const opt = document.createElement("option");
+    opt.value = n;
+    opt.textContent = n;
+    return opt;
+  }));
+  select.value = PMCategories.activeProfileName();
+  $("deleteProfileBtn").disabled = names.length <= 1;
+}
+
+function bindProfiles() {
+  const select = $("profileSelect");
+  if (!select) return;
+
+  select.addEventListener("change", (e) => {
+    PMCategories.switchProfile(e.target.value);
+    renderProfiles();
+    renderCatTable();
+  });
+
+  $("newProfileBtn").addEventListener("click", async () => {
+    const name = await promptDialog({ title: "新增設定檔", label: "名稱", value: "新設定檔" });
+    if (name === null) return;
+    PMCategories.createProfile(name, false);
+    renderProfiles();
+    renderCatTable();
+    notify.success("已新增設定檔");
+  });
+
+  $("copyProfileBtn").addEventListener("click", async () => {
+    const current = PMCategories.activeProfileName();
+    const name = await promptDialog({ title: "複製設定檔", label: "名稱", value: `${current} 複本` });
+    if (name === null) return;
+    PMCategories.createProfile(name, true);
+    renderProfiles();
+    renderCatTable();
+    notify.success("已複製設定檔");
+  });
+
+  $("renameProfileBtn").addEventListener("click", async () => {
+    const current = PMCategories.activeProfileName();
+    const name = await promptDialog({ title: "重新命名設定檔", label: "名稱", value: current });
+    if (name === null) return;
+    PMCategories.renameProfile(current, name);
+    renderProfiles();
+  });
+
+  $("deleteProfileBtn").addEventListener("click", async () => {
+    const current = PMCategories.activeProfileName();
+    const ok = await confirmDialog({
+      title: `刪除設定檔「${current}」？`,
+      message: "這一套裡的分類會跟著消失。已經標記在照片上的分類不會被動到, 但會變成找不到對應的分類。",
+      tone: "danger", confirm: true, confirmText: "刪除設定檔",
+    });
+    if (!ok) return;
+    PMCategories.deleteProfile(current);
+    renderProfiles();
+    renderCatTable();
+  });
+}
+
 export function mountPage() {
   $("addCatBtn").addEventListener("click", () => { PMCategories.add(); renderCatTable(); });
 
@@ -146,5 +217,7 @@ export function mountPage() {
     renderCatTable();
   });
 
+  renderProfiles();
+  bindProfiles();
   renderCatTable();
 }

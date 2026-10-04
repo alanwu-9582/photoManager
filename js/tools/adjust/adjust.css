@@ -1,0 +1,211 @@
+/* js/tools/adjust/adjust.css — 調整。
+   版面沿用工具頁共用的「畫布 + 設定欄」; 這裡只加畫布上的浮動元件與風格格子。 */
+
+.adj-stage {
+  /* 預覽畫布不論主題都是深色（規範 §1.2）。 */
+  background: var(--canvas);
+}
+
+.adj-frame {
+  position: absolute;
+  inset: var(--stage-pad);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adj-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius-item);
+  image-rendering: auto;
+}
+
+/* ---- 疊在畫布上的東西: 深色半透明底、白字, 與主題無關（規範 §7.2） ---- */
+.adj-badge,
+.adj-orig,
+.sc-panel {
+  background: rgba(28, 28, 30, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.adj-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 8px;
+  border-radius: var(--radius-toggle);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+
+.adj-orig {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-toggle);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+
+/* ============================================================
+   照片參數（左下角的資訊面板, 規範 §7.2）
+   ============================================================ */
+.sc-panel {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 2;
+  border-radius: var(--radius-group);
+  overflow: hidden;
+  max-width: calc(100% - 16px);
+}
+
+.sc-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sc-caret { font-size: 10px; opacity: 0.7; }
+
+.sc-inner { display: none; padding: 0 8px 8px; }
+.sc-panel.is-open .sc-inner { display: block; }
+
+.sc-tabs { display: flex; gap: 2px; margin-bottom: 6px; }
+
+.sc-tab {
+  flex: 1 1 0;
+  padding: 3px 6px;
+  border: none;
+  border-radius: var(--radius-item);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.62);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.sc-tab:hover { color: #fff; }
+.sc-tab.is-active { background: rgba(255, 255, 255, 0.24); color: #fff; font-weight: 600; }
+
+.sc-chart { display: block; border-radius: var(--radius-badge); }
+
+.sc-swatches { display: flex; gap: 4px; margin-top: 6px; }
+.sc-swatch {
+  flex: 1 1 0;
+  height: 18px;
+  border-radius: var(--radius-item);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.sc-rows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 12px;
+  width: 300px;
+  max-width: 100%;
+}
+
+.sc-k { font-size: 11px; color: rgba(255, 255, 255, 0.62); }
+.sc-v {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   設定欄
+   ============================================================ */
+.adj-controls { gap: 10px; }
+
+.adj-panes {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.adj-pane { display: flex; flex-direction: column; gap: 2px; }
+
+.adj-head { display: flex; align-items: center; gap: 6px; }
+.adj-head .section-title { margin-top: 10px; }
+.adj-spacer { flex: 1 1 auto; }
+
+.adj-pad-wrap { display: flex; justify-content: center; padding: 6px 0 2px; }
+
+/* ---- 攝影風格的縮圖格子（規範 §4.10） ---- */
+.adj-style-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.adj-style {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.adj-style-swatch {
+  display: block;
+  width: 100%;
+  aspect-ratio: 90 / 56;
+  border-radius: var(--radius-control);
+  box-shadow: inset 0 0 0 1px var(--separator-hex);
+}
+
+.adj-style.is-active .adj-style-swatch { box-shadow: 0 0 0 2.5px var(--accent-color); }
+
+.adj-style-label {
+  font-size: var(--text-caption);
+  color: var(--secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adj-style.is-active .adj-style-label { color: var(--label); font-weight: 600; }
+.adj-style:focus-visible { outline: var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-control); }
+
+/* 每個風格的小樣本: 用漸層近似那個風格的調性, 不必真的算一張縮圖。 */
+.adj-style-swatch.is-standard { background: linear-gradient(135deg, #8a8f99, #c9ccd2); }
+.adj-style-swatch.is-amber { background: linear-gradient(135deg, #8a6440, #e0b483); }
+.adj-style-swatch.is-gold { background: linear-gradient(135deg, #8a7230, #e8c878); }
+.adj-style-swatch.is-rose_gold { background: linear-gradient(135deg, #9a6a62, #e8b8aa); }
+.adj-style-swatch.is-neutral { background: linear-gradient(135deg, #6f7a84, #c2cad2); }
+.adj-style-swatch.is-cool_rose { background: linear-gradient(135deg, #7a6a86, #d8bcd0); }
+.adj-style-swatch.is-vibrant { background: linear-gradient(135deg, #1f6fd0, #f05a2a); }
+.adj-style-swatch.is-natural { background: linear-gradient(135deg, #5d7f5a, #cfd8b8); }
+.adj-style-swatch.is-luminous { background: linear-gradient(135deg, #b9c6d8, #fdf6ea); }
+.adj-style-swatch.is-dramatic { background: linear-gradient(135deg, #14181f, #6e7c90); }
+.adj-style-swatch.is-quiet { background: linear-gradient(135deg, #8d8b86, #ddd8cf); }
+.adj-style-swatch.is-cozy { background: linear-gradient(135deg, #6b4a32, #d9a56d); }
+.adj-style-swatch.is-ethereal { background: linear-gradient(135deg, #c3c8e0, #f6eef6); }
+.adj-style-swatch.is-muted_bw { background: linear-gradient(135deg, #5a5a5a, #cfcfcf); }
+.adj-style-swatch.is-stark_bw { background: linear-gradient(135deg, #0b0b0b, #f2f2f2); }

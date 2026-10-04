@@ -1902,3 +1902,37 @@ input[type=file] {
     }
     .rn-arrow { display: none; }
 }
+
+/* ============================================================
+   分組標題（照片檢視）
+   ------------------------------------------------------------
+   橫跨整排, 一組一條。組名左邊、張數右邊。
+   ============================================================ */
+.group-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--separator);
+}
+
+.group-head:first-child { margin-top: 0; }
+
+.group-name {
+    font-size: var(--text-callout);
+    font-weight: 600;
+    color: var(--label);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.group-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    color: var(--secondary);
+    font-variant-numeric: tabular-nums;
+}

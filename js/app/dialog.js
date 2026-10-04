@@ -42,3 +42,39 @@ export function confirmDialog({ title, message, tone = "info", confirm = false, 
 export function alertDialog(cfg) {
   return confirmDialog({ ...cfg, confirm: false });
 }
+
+/**
+ * 問一個字串。取消回傳 null, 確定回傳去掉前後空白的字。
+ * 主要動作在必要欄位填好之前是停用的（規範 §4.12）, 不另外跳錯誤訊息。
+ * @param {{title:string, label?:string, value?:string, placeholder?:string, confirmText?:string}} cfg
+ * @returns {Promise<string|null>}
+ */
+export function promptDialog({ title, label, value = "", placeholder = "", confirmText = "確定" }) {
+  return new Promise((resolve) => {
+    let answer = null;
+    const input = el("input", { type: "text", class: "tool-input", value, placeholder, spellcheck: "false" });
+    const ok = el("button", {
+      type: "button", class: "btn btn-primary",
+      onclick: () => { answer = input.value.trim(); closeModal(); },
+    }, confirmText);
+    const sync = () => { ok.disabled = !input.value.trim(); };
+    input.addEventListener("input", sync);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && input.value.trim()) { e.preventDefault(); ok.click(); }
+    });
+    sync();
+
+    openModal({
+      title,
+      maxWidth: "440px",
+      body: el("div", { class: "field" },
+        label ? el("span", { class: "field-label" }, label) : null, input),
+      footer: el("div", { class: "dialog-actions" },
+        el("button", { type: "button", class: "btn btn-ghost", onclick: () => closeModal() }, "取消"),
+        ok),
+      onClose: () => resolve(answer),
+    });
+    input.focus();
+    input.select();
+  });
+}

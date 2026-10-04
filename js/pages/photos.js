@@ -16,6 +16,7 @@ import {
   FILTER_FIELDS, optionsFor, applyFilters, activeCount,
 } from "../app/photo-filter.js";
 import { openInspector } from "../app/exif-inspector.js";
+import { GROUPS, NEEDS_EXIF, group } from "../app/grouping.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -299,6 +300,75 @@ function paintToolbarCounts() {
   }
 }
 
+/** 一張縮圖卡片。 */
+function makeCard(p) {
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const thumbWrap = document.createElement("div");
+  thumbWrap.className = "thumb-wrap";
+  const img = document.createElement("img");
+  img.alt = p.name;
+  thumbWrap.appendChild(img);
+
+  // 縮圖上的快捷只有一顆, 而且只做一件事: 挑編輯工具。
+  // 以後工具再多也只是清單多一列, 不會把縮圖蓋滿。
+  const openBtn = document.createElement("button");
+  openBtn.type = "button";
+  openBtn.className = "card-open";
+  openBtn.title = "用編輯工具開啟";
+  openBtn.setAttribute("aria-label", `用編輯工具開啟 ${p.name}`);
+  openBtn.innerHTML = icon("tool", { size: "16px" });
+  openBtn.addEventListener("click", (e) => { e.stopPropagation(); openToolMenu(p); });
+  thumbWrap.appendChild(openBtn);
+
+  // 點照片本身就是「我想看清楚這張是什麼」—— 直接開完整資訊。
+  thumbWrap.addEventListener("click", () => openInspector(p));
+
+  if (p.catId) {
+    const cat = PMCategories.byId(p.catId);
+    if (cat) {
+      const dot = document.createElement("span");
+      dot.className = "card-cat-dot";
+      dot.style.background = cat.color;
+      dot.title = cat.name;
+      dot.textContent = cat.key;
+      thumbWrap.appendChild(dot);
+    }
+  }
+  card.appendChild(thumbWrap);
+
+  const body = document.createElement("div");
+  body.className = "card-body";
+  const fname = document.createElement("div");
+  fname.className = "card-fname";
+  fname.textContent = p.relPath;
+  fname.title = p.relPath;
+  body.appendChild(fname);
+
+  const list = document.createElement("div");
+  list.className = "exif-list";
+  body.appendChild(list);
+  card.appendChild(body);
+
+  fillExifList(p, list);
+  attachThumb(img, p, () => fillExifList(p, list));
+  return card;
+}
+
+/**
+ * 分好組的照片順序。
+ * 回傳一條攤平的清單, 每一筆記著自己屬於哪一組 —— 翻頁還是照這條清單切,
+ * 只是畫的時候遇到換組就插一條組標題。
+ */
+function orderedPhotos(photos) {
+  const groups = group(photos, state.groupBy);
+  if (!groups.length) return { flat: photos.map((p) => ({ photo: p, g: -1 })), groups: [] };
+  const flat = [];
+  groups.forEach((g, i) => g.photos.forEach((photo) => flat.push({ photo, g: i })));
+  return { flat, groups };
+}
+
 function renderGrid() {
   const grid = $("grid");
   if (!grid) return;
@@ -320,63 +390,22 @@ function renderGrid() {
     ? `${total} 張`
     : `${photos.length} / ${total} 張`;
 
-  const totalPages = Math.max(1, Math.ceil(photos.length / state.pageSize));
+  const { flat, groups } = orderedPhotos(photos);
+  const totalPages = Math.max(1, Math.ceil(flat.length / state.pageSize));
   state.photosPage = Math.min(Math.max(state.photosPage, 0), totalPages - 1);
   const start = state.photosPage * state.pageSize;
 
-  photos.slice(start, start + state.pageSize).forEach((p) => {
-    const card = document.createElement("div");
-    card.className = "card";
-
-    const thumbWrap = document.createElement("div");
-    thumbWrap.className = "thumb-wrap";
-    const img = document.createElement("img");
-    img.alt = p.name;
-    thumbWrap.appendChild(img);
-
-    // 縮圖上的快捷只有一顆, 而且只做一件事: 挑編輯工具。
-    // 以後工具再多也只是清單多一列, 不會把縮圖蓋滿。
-    const openBtn = document.createElement("button");
-    openBtn.type = "button";
-    openBtn.className = "card-open";
-    openBtn.title = "用編輯工具開啟";
-    openBtn.setAttribute("aria-label", `用編輯工具開啟 ${p.name}`);
-    openBtn.innerHTML = icon("tool", { size: "16px" });
-    openBtn.addEventListener("click", (e) => { e.stopPropagation(); openToolMenu(p); });
-    thumbWrap.appendChild(openBtn);
-
-    // 點照片本身就是「我想看清楚這張是什麼」—— 直接開完整資訊。
-    thumbWrap.addEventListener("click", () => openInspector(p));
-
-    if (p.catId) {
-      const cat = PMCategories.byId(p.catId);
-      if (cat) {
-        const dot = document.createElement("span");
-        dot.className = "card-cat-dot";
-        dot.style.background = cat.color;
-        dot.title = cat.name;
-        dot.textContent = cat.key;
-        thumbWrap.appendChild(dot);
-      }
+  let lastGroup = -2;
+  flat.slice(start, start + state.pageSize).forEach(({ photo, g }) => {
+    if (g !== lastGroup && g >= 0) {
+      lastGroup = g;
+      const head = document.createElement("div");
+      head.className = "group-head";
+      head.innerHTML = `<span class="group-name"></span><span class="group-count">${groups[g].photos.length}</span>`;
+      head.querySelector(".group-name").textContent = groups[g].title;
+      grid.appendChild(head);
     }
-    card.appendChild(thumbWrap);
-
-    const body = document.createElement("div");
-    body.className = "card-body";
-    const fname = document.createElement("div");
-    fname.className = "card-fname";
-    fname.textContent = p.relPath;
-    fname.title = p.relPath;
-    body.appendChild(fname);
-
-    const list = document.createElement("div");
-    list.className = "exif-list";
-    body.appendChild(list);
-    card.appendChild(body);
-    grid.appendChild(card);
-
-    fillExifList(p, list);
-    attachThumb(img, p, () => fillExifList(p, list));
+    grid.appendChild(makeCard(photo));
   });
 
   renderPagination($("photosPagination"), state.photosPage, totalPages, (newPage) => {
@@ -405,6 +434,22 @@ export function mountPage() {
   pageSize.addEventListener("change", (e) => {
     state.pageSize = parseInt(e.target.value, 10) || 50;
     state.photosPage = 0;
+    renderGrid();
+  });
+
+  const groupSelect = $("groupSelect");
+  groupSelect.replaceChildren(...GROUPS.map((g) => {
+    const opt = document.createElement("option");
+    opt.value = g.value;
+    opt.textContent = g.label;
+    return opt;
+  }));
+  groupSelect.value = state.groupBy;
+  groupSelect.addEventListener("change", (e) => {
+    state.groupBy = e.target.value;
+    state.photosPage = 0;
+    // 分組要看 EXIF 的那幾種, 沒掃完就先補掃一遍, 不然會全部掉進「沒有 EXIF」。
+    if (NEEDS_EXIF.has(state.groupBy)) ensureAnalysed(() => renderGrid());
     renderGrid();
   });
 

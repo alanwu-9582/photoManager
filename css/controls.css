@@ -1,0 +1,398 @@
+/* css/controls.css — 照《介面設計規範》做的共用控制項。
+   分段控制、步進器、開關、參數列滑桿、二維控制板、群組框、欄位。
+   這些在桌面版是 ui/widgets.py，網頁版放在 js/tools/kit.js 產生 DOM。 */
+
+/* ============================================================
+   分段控制（規範 §4.2）
+   ------------------------------------------------------------
+   軌道是 fill、圓角 7；選中那一段浮在軌道上（淺色白、深色 #636366）,
+   每一段等寬, 未選中的段之間畫一條細線。
+   ============================================================ */
+.tool-segmented {
+  display: inline-flex;
+  align-items: stretch;
+  height: var(--control-height);
+  padding: 2px;
+  gap: 0;
+  border: none;
+  border-radius: var(--radius-control);
+  background: var(--fill);
+}
+
+.tool-segmented.is-wide { display: flex; width: 100%; }
+
+.tool-seg {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border: none;
+  border-radius: 5.5px;
+  background: transparent;
+  color: var(--secondary);
+  font-family: inherit;
+  font-size: var(--text-callout);
+  font-weight: 400;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
+}
+
+/* 未選中的段之間一條 1px 細線（上下各縮 5）；選中段兩側不畫。 */
+.tool-seg + .tool-seg::before {
+  content: "";
+  position: absolute;
+  left: -0.5px;
+  top: 5px;
+  bottom: 5px;
+  width: 1px;
+  background: var(--separator);
+}
+
+.tool-seg:hover { color: var(--label); background: var(--fill); }
+.tool-seg:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
+
+.tool-seg.is-active {
+  background: var(--content);
+  color: var(--label);
+  font-weight: 600;
+  box-shadow: 0 0.6px 2px var(--shadow-color);
+}
+
+:root[data-theme="dark"] .tool-seg.is-active,
+:root:not([data-theme="light"]) .tool-seg.is-active { background: #636366; }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .tool-seg.is-active { background: #ffffff; }
+}
+:root[data-theme="light"] .tool-seg.is-active { background: #ffffff; }
+
+.tool-seg.is-active::before,
+.tool-seg.is-active + .tool-seg::before { opacity: 0; }
+
+/* ============================================================
+   步進器（規範 §4.3）
+   ------------------------------------------------------------
+   有級距、有順序的值用這個, 不要用滑桿 —— 拖不準, 也看不出有幾級。
+   中間數值區至少是單側箭頭鈕的兩倍寬。
+   ============================================================ */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height);
+  padding: 2px;
+  border-radius: var(--radius-control);
+  background: var(--fill);
+}
+
+.stepper.is-wide { display: flex; width: 100%; }
+
+.stepper-arrow {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 5.5px;
+  background: transparent;
+  color: var(--label);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
+}
+
+.stepper-arrow:hover:not(:disabled) { background: var(--fill); }
+.stepper-arrow:disabled { color: var(--tertiary); cursor: default; }
+.stepper-arrow:focus-visible { outline: var(--focus-ring); outline-offset: -1px; }
+.stepper-arrow .svg-icon { transform: rotate(0deg); }
+.stepper-arrow.is-prev .svg-icon { transform: rotate(180deg); }
+
+.stepper-value {
+  flex: 1 1 auto;
+  min-width: 60px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border: none;
+  border-radius: 5.5px;
+  background: var(--content);
+  color: var(--label);
+  font-family: var(--font-mono);
+  font-size: var(--text-callout);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+:root[data-theme="dark"] .stepper-value,
+:root:not([data-theme="light"]) .stepper-value { background: #636366; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .stepper-value { background: #ffffff; }
+}
+:root[data-theme="light"] .stepper-value { background: #ffffff; }
+
+.stepper-value:focus-visible { outline: var(--focus-ring); outline-offset: -1px; }
+
+/* ============================================================
+   開關（規範 §4.5）
+   ============================================================ */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--control-height);
+  padding: 0 12px;
+  border: 1px solid var(--separator-hex);
+  border-radius: var(--radius-toggle);
+  background: var(--content);
+  color: var(--secondary);
+  font-family: inherit;
+  font-size: var(--text-callout);
+  font-weight: 400;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
+}
+
+.switch.is-wide { display: flex; width: 100%; }
+.switch:hover { color: var(--label); border-color: var(--tertiary); }
+.switch:focus-visible { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 1px var(--accent-color); }
+
+.switch.is-on {
+  position: relative;
+  color: var(--on-accent-color);
+  font-weight: 600;
+  border-color: transparent;
+}
+
+/* 開啟時內縮 3 的內塊填強調色。 */
+.switch.is-on::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 4px;
+  background: var(--accent-color);
+  z-index: 0;
+}
+
+.switch.is-on > * { position: relative; z-index: 1; }
+.switch.is-icon { width: var(--control-height); padding: 0; }
+
+/* ============================================================
+   參數列滑桿（規範 §4.4 B）
+   ------------------------------------------------------------
+   名稱(86) ── 軌道 ── 數值(46)，整列高 30。
+   偏離預設時名稱與數值變亮變粗, 一眼看得出哪些動過。
+   ============================================================ */
+.pslider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--control-height);
+}
+
+.pslider-name {
+  flex: 0 0 86px;
+  min-width: 0;
+  font-size: var(--text-callout);
+  color: var(--secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pslider-value {
+  flex: 0 0 46px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.pslider.is-set .pslider-name { color: var(--label); font-weight: 600; }
+.pslider.is-set .pslider-value { color: var(--label); }
+
+.pslider-track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--control-height);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.pslider-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: var(--radius-track);
+  background: var(--fill-strong);
+}
+
+.pslider-fill {
+  position: absolute;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: var(--radius-track);
+  background: var(--accent-color);
+}
+
+/* 雙向的參數在中點畫一個小刻度, 填色從中點往目前值畫。 */
+.pslider-mid {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 8px;
+  margin: -9px 0 0 -0.5px;
+  background: var(--tertiary);
+}
+
+.pslider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 4px;
+  background: var(--slider-thumb);
+  box-shadow: 0 1px 3px var(--shadow-color);
+  transition: width var(--duration-fast) var(--ease), height var(--duration-fast) var(--ease),
+              margin var(--duration-fast) var(--ease), background var(--duration-fast) var(--ease);
+  pointer-events: none;
+}
+
+.pslider-track:hover .pslider-thumb,
+.pslider-track.is-dragging .pslider-thumb {
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  background: var(--slider-thumb-hover);
+}
+
+/* 拖動時不要外框: 滑鼠按下去也會讓它取得焦點, 整條框起來很吵。
+   鍵盤走到這裡（:focus-visible 而且沒有在按）才畫。 */
+.pslider-track:focus-visible:not(:active) {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-item);
+}
+.pslider-track:focus { outline: none; }
+
+/* ============================================================
+   二維控制板（規範 §4.8.1）
+   ============================================================ */
+.pad2d {
+  position: relative;
+  width: 188px;
+  height: 188px;
+  max-width: 100%;
+  border-radius: 14px;
+  background: var(--content);
+  border: 1px solid var(--separator-hex);
+  cursor: pointer;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.pad2d-grid { position: absolute; inset: 0; }
+.pad2d-axis {
+  position: absolute;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--secondary);
+  pointer-events: none;
+}
+.pad2d-axis.is-top { top: 7px; left: 50%; transform: translateX(-50%); }
+.pad2d-axis.is-bottom { bottom: 7px; left: 50%; transform: translateX(-50%); }
+.pad2d-axis.is-left { left: 8px; top: 50%; transform: translateY(-50%); }
+.pad2d-axis.is-right { right: 8px; top: 50%; transform: translateY(-50%); }
+
+.pad2d-dot {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px var(--shadow-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.pad2d-dot::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 2.6px;
+  background: var(--accent-color);
+}
+
+/* ============================================================
+   群組框與欄位（規範 §4.11、§6.4）
+   ============================================================ */
+.groupbox {
+  border: 1px solid var(--separator-hex);
+  border-radius: var(--radius-group);
+  background: var(--content);
+  padding: 14px 16px;
+}
+
+.groupbox > h3 {
+  margin: 0 0 10px;
+  font-size: var(--text-headline);
+  font-weight: 600;
+  color: var(--label);
+}
+
+.groupbox-body { display: flex; flex-direction: column; gap: 10px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field > label,
+.field-label {
+  font-size: var(--text-caption);
+  color: var(--secondary);
+}
+.field-row { display: flex; gap: 14px; }
+.field-row > .field { flex: 1 1 0; }
+
+/* 區段標題（設定欄裡分組用）：caption 600、secondary、上方多留 10。 */
+.section-title {
+  margin: 10px 0 0;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--secondary);
+}
+.section-title:first-child { margin-top: 0; }
+
+.settings-stack { display: flex; flex-direction: column; gap: 12px; max-width: 720px; }
+
+.setting-line {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: var(--control-height);
+}
+.setting-line > .setting-text { flex: 1 1 auto; min-width: 0; }
+.setting-text-main { font-size: var(--text-body); color: var(--label); }
+.setting-text-sub {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

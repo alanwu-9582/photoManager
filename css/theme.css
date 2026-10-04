@@ -1,95 +1,187 @@
 /* css/theme.css — 全站唯一的顏色、字體、尺寸來源。
-   任何顏色都必須經過這裡的變數, 元件樣式不直接寫死色碼。 */
+   任何顏色都必須經過這裡的變數, 元件樣式不直接寫死色碼。
+
+   色票與尺寸照桌面版的《介面設計規範》（docs/介面設計規範.md）：
+   淺色、深色兩套跟著系統走, 也可以在「設定」裡指定。強調色是 systemIndigo。
+
+   下半部保留舊的 --bg / --card-bg / --accent… 這些名字當作轉接層,
+   原本的樣式表不必全部改寫, 換配色只要動上面的 token。 */
 
 :root {
-  /** Base text colors */
-  --cffy-theme-light-a0: #ffffff;
-  --cffy-theme-dark-a0: #000000;
+  color-scheme: dark;
 
-  /** Theme primary colors */
-  --cffy-theme-primary-a0: #9893bd;
-  --cffy-theme-primary-a10: #a29dc4;
-  --cffy-theme-primary-a20: #aca8ca;
-  --cffy-theme-primary-a30: #b6b3d1;
-  --cffy-theme-primary-a40: #c0bdd8;
-  --cffy-theme-primary-a50: #cac8de;
+  /* ---------------- 介面色票（深色, 預設） ---------------- */
+  --window: #1c1c1e;
+  --content: #232325;
+  --sidebar-bg: #28282b;
+  --elevated: #2c2c2e;
+  --control: #3a3a3c;
+  --control-hover: #444447;
+  --fill: rgba(120, 120, 128, 0.24);
+  --fill-strong: rgba(120, 120, 128, 0.36);
+  --fill-hex: #38383b;
+  --label: #f5f5f7;
+  --secondary: #a1a1a6;
+  --tertiary: #6e6e73;
+  --separator: rgba(255, 255, 255, 0.10);
+  --separator-hex: #3a3a3d;
+  --accent-color: #7d7aff;
+  --accent-hover: #8f8cff;
+  --accent-soft: rgba(125, 122, 255, 0.22);
+  --on-accent-color: #ffffff;
+  --slider-thumb: #b6b3f5;
+  --slider-thumb-hover: #d4d2fb;
 
-  /** Theme surface colors */
-  --cffy-theme-surface-a0: #121212;
-  --cffy-theme-surface-a10: #252525;
-  --cffy-theme-surface-a20: #393939;
-  --cffy-theme-surface-a30: #4f4f4f;
-  --cffy-theme-surface-a40: #666;
-  --cffy-theme-surface-a50: #7d7d7d;
+  /* 系統色（狀態、標籤、圖表分類） */
+  --red: #ff453a;
+  --orange: #ff9f0a;
+  --yellow: #ffd60a;
+  --green: #30d158;
+  --teal: #40c8e0;
+  --blue: #0a84ff;
+  --purple: #bf5af2;
+  --gray: #98989d;
 
-  /** Success colors */
-  --cffy-theme-success-a0: #7dff95;
-  --cffy-theme-success-a10: #9dffac;
-  --cffy-theme-success-a20: #b8ffc1;
+  /* 預覽畫布不論主題都是深色: 被看的照片才不會被淺色背景襯偏。 */
+  --canvas: #111113;
+  --shadow-color: rgba(0, 0, 0, 0.45);
 
-  /** Warning colors */
-  --cffy-theme-warning-a0: #ffbc5e;
-  --cffy-theme-warning-a10: #ffca83;
-  --cffy-theme-warning-a20: #ffd8a4;
+  /* 半透明用的 rgb 分量 */
+  --rgb-accent: 125, 122, 255;
+  --rgb-red: 255, 69, 58;
+  --rgb-green: 48, 209, 88;
+  --rgb-orange: 255, 159, 10;
+  --rgb-blue: 10, 132, 255;
+}
 
-  /** Danger colors */
-  --cffy-theme-danger-a0: #ff8080;
-  --cffy-theme-danger-a10: #ff9b99;
-  --cffy-theme-danger-a20: #ffb5b2;
+/* 淺色。使用者沒有指定時跟著系統；指定了就看 data-theme。 */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --window: #f5f5f7;
+    --content: #ffffff;
+    --sidebar-bg: #ebebef;
+    --elevated: #ffffff;
+    --control: #ffffff;
+    --control-hover: #f2f2f5;
+    --fill: rgba(120, 120, 128, 0.12);
+    --fill-strong: rgba(120, 120, 128, 0.20);
+    --fill-hex: #e9e9ee;
+    --label: #1d1d1f;
+    --secondary: #6e6e73;
+    --tertiary: #a1a1a6;
+    --separator: rgba(0, 0, 0, 0.10);
+    --separator-hex: #e0e0e5;
+    --accent-color: #5856d6;
+    --accent-hover: #4b49c8;
+    --accent-soft: rgba(88, 86, 214, 0.14);
+    --slider-thumb: #6c6ae0;
+    --slider-thumb-hover: #4b49c8;
+    --red: #ff3b30;
+    --orange: #ff9500;
+    --yellow: #ffcc00;
+    --green: #34c759;
+    --teal: #30b0c7;
+    --blue: #007aff;
+    --purple: #af52de;
+    --gray: #8e8e93;
+    --canvas: #1c1c1e;
+    --shadow-color: rgba(0, 0, 0, 0.12);
+    --rgb-accent: 88, 86, 214;
+    --rgb-red: 255, 59, 48;
+    --rgb-green: 52, 199, 89;
+    --rgb-orange: 255, 149, 0;
+    --rgb-blue: 0, 122, 255;
+  }
+}
 
-  /** Info colors */
-  --cffy-theme-info-a0: #87d1ff;
-  --cffy-theme-info-a10: #a1dbff;
-  --cffy-theme-info-a20: #b9e4ff;
+:root[data-theme="light"] {
+  color-scheme: light;
+  --window: #f5f5f7;
+  --content: #ffffff;
+  --sidebar-bg: #ebebef;
+  --elevated: #ffffff;
+  --control: #ffffff;
+  --control-hover: #f2f2f5;
+  --fill: rgba(120, 120, 128, 0.12);
+  --fill-strong: rgba(120, 120, 128, 0.20);
+  --fill-hex: #e9e9ee;
+  --label: #1d1d1f;
+  --secondary: #6e6e73;
+  --tertiary: #a1a1a6;
+  --separator: rgba(0, 0, 0, 0.10);
+  --separator-hex: #e0e0e5;
+  --accent-color: #5856d6;
+  --accent-hover: #4b49c8;
+  --accent-soft: rgba(88, 86, 214, 0.14);
+  --slider-thumb: #6c6ae0;
+  --slider-thumb-hover: #4b49c8;
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --yellow: #ffcc00;
+  --green: #34c759;
+  --teal: #30b0c7;
+  --blue: #007aff;
+  --purple: #af52de;
+  --gray: #8e8e93;
+  --canvas: #1c1c1e;
+  --shadow-color: rgba(0, 0, 0, 0.12);
+  --rgb-accent: 88, 86, 214;
+  --rgb-red: 255, 59, 48;
+  --rgb-green: 52, 199, 89;
+  --rgb-orange: 255, 149, 0;
+  --rgb-blue: 0, 122, 255;
+}
 
-  /** Semantic aliases */
-  --bg: var(--cffy-theme-surface-a0);
-  --nav-bg: var(--cffy-theme-surface-a10);
-  --card-bg: var(--cffy-theme-surface-a10);
-  --card-bg-alt: var(--cffy-theme-surface-a20);
-  --border: var(--cffy-theme-surface-a30);
-  --border-soft: var(--cffy-theme-surface-a20);
-  --text: var(--cffy-theme-light-a0);
-  /* 小字輔助文字在 #121212 / #252525 上都維持 WCAG AA。 */
-  --text-muted: #a3a1ae;
-  --text-dim: #8b8996;
-  --primary: var(--cffy-theme-primary-a0);
-  --primary-hover: var(--cffy-theme-primary-a10);
-  /* 主色是中明度的紫灰, 實心填底時必須配深色文字才有足夠對比。 */
-  --on-primary: var(--cffy-theme-dark-a0);
-  /* 主色當文字用時提亮一階, 在 #121212 上約 8:1。 */
-  --interactive: var(--cffy-theme-primary-a20);
-  --link: var(--cffy-theme-primary-a20);
-  --success: var(--cffy-theme-success-a0);
-  --warning: var(--cffy-theme-warning-a0);
-  --critical: var(--cffy-theme-danger-a0);
-  --info: var(--cffy-theme-info-a0);
-  --disabled: var(--cffy-theme-surface-a40);
-  --app-chrome-bg: var(--cffy-theme-surface-a10);
-
-  /* 半透明表面用的 rgb 分量, 仍集中管理在這裡。 */
-  --rgb-primary: 152, 147, 189;
-  --rgb-info: 135, 209, 255;
-  --rgb-success: 125, 255, 149;
-  --rgb-warning: 255, 188, 94;
-  --rgb-danger: 255, 128, 128;
-
-  /* 圓角級距。全站規則: 圓角不超過該元素短邊的 1/3,
-     所以沒有膠囊（999px）或正圓（50%）圓角, 除非另有註記。 */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius: 12px;
-  --radius-lg: 16px;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --gap: 16px;
-
-  /** Fonts */
+:root {
+  /* ---------------- 字體 ---------------- */
   /* TASA Explorer 只有拉丁字, 中文自然落到 IBM Plex Sans JP —— 兩套的字重與
      字面高度接近, 中英夾雜的一行不會忽大忽小。 */
   --font-family: "TASA Explorer", "IBM Plex Sans JP", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Spacing scale */
+  /* 字級階層（規範 §2.2）。 */
+  --text-large: 26px;
+  --text-title2: 18px;
+  --text-title3: 16px;
+  --text-headline: 14px;
+  --text-body: 14px;
+  --text-callout: 13px;
+  --text-caption: 12px;
+  /* 舊名字 */
+  --text-title: var(--text-large);
+  --text-section: var(--text-title3);
+  --text-label: var(--text-callout);
+  --text-supporting: var(--text-caption);
+
+  /* ---------------- 尺寸 ---------------- */
+  /* 同一列裡所有可操作的元件一律這麼高（規範 §0.1）。 */
+  --control-height: 30px;
+  --hit-min: 44px;
+  --sidebar-w: 212px;
+  --sidebar-w-collapsed: 60px;
+  --statusbar-h: 30px;
+
+  /* 圓角級距（規範 §3.3）。每一個都已經在「短邊 1/3」以內。 */
+  --radius-card: 12px;
+  --radius-group: 10px;
+  --radius-menu: 9px;
+  --radius-list: 8px;
+  --radius-control: 7px;
+  --radius-toggle: 6px;
+  --radius-badge: 5px;
+  --radius-item: 4px;
+  --radius-track: 2px;
+  /* 舊名字 */
+  --radius-xs: var(--radius-item);
+  --radius-sm: var(--radius-control);
+  --radius: var(--radius-group);
+  --radius-lg: var(--radius-card);
+
+  --shadow: 0 4px 20px var(--shadow-color);
+  --gap: 12px;
+
+  /* 間距（規範 §3.2） */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -99,49 +191,95 @@
   --space-8: 32px;
   --space-12: 48px;
 
-  /* Typography scale */
-  --text-caption: 11.5px;
-  --text-supporting: 12.5px;
-  --text-body: 14px;
-  --text-label: 13px;
-  --text-section: 17px;
-  --text-title: 28px;
-
-  /* Control sizes / touch target */
-  --control-height: 40px;
-  --hit-min: 44px;
-
   /* Motion —— 進場快、收尾慢的曲線, 動作看起來才像被「放開」而不是被切斷。 */
   --duration-fast: 140ms;
   --duration-default: 220ms;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --easing-standard: var(--ease);
 
-  /* Focus ring / overlays */
-  --color-focus: var(--cffy-theme-primary-a30);
-  --focus-ring: 2px solid var(--color-focus);
-  --overlay-scrim: rgba(0, 0, 0, 0.72);
-  --surface-selected: rgba(var(--rgb-primary), 0.16);
+  --focus-ring: 2px solid var(--accent-color);
+  --color-focus: var(--accent-color);
+  --overlay-scrim: rgba(0, 0, 0, 0.45);
+  --surface-selected: var(--accent-soft);
 
-  /* Z-index scale */
   --z-nav: 5;
   --z-progress: 50;
   --z-overlay: 100;
   --z-toast: 200;
+}
 
-  /* ---- 照片管理原有版面沿用的別名 ----
-     photo.css 是從舊版 style.css 原樣搬過來的, 那邊寫的是這一組名字;
-     在這裡接到上面的語意變數, 改配色時只要動上面就好。 */
-  --bg-2: var(--card-bg);
-  --bg-3: var(--card-bg-alt);
-  --line: var(--border-soft);
-  --muted: var(--text-muted);
-  --accent: var(--interactive);
-  --accent-dim: rgba(var(--rgb-primary), 0.18);
-  --on-accent: var(--on-primary);
-  --danger: var(--critical);
-  --danger-dim: rgba(var(--rgb-danger), 0.14);
-  --on-cat: var(--cffy-theme-dark-a0);
-  /* 縮圖底色固定是純黑: 照片本身才是主角, 底色不該跟著主題色走。 */
-  --thumb-bg: #000;
+/* ============================================================
+   轉接層
+   ------------------------------------------------------------
+   下面這些是舊樣式表在用的名字。全部接到上面的 token, 所以換主題、換配色
+   只要動上面那一段, 不用回頭改幾千行 CSS。
+   ============================================================ */
+:root {
+  --bg: var(--window);
+  --nav-bg: var(--sidebar-bg);
+  --card-bg: var(--content);
+  --card-bg-alt: var(--fill-hex);
+  --border: var(--separator-hex);
+  --border-soft: var(--separator-hex);
+  --text: var(--label);
+  --text-muted: var(--secondary);
+  --text-dim: var(--tertiary);
+  --primary: var(--accent-color);
+  --primary-hover: var(--accent-hover);
+  --on-primary: var(--on-accent-color);
+  --interactive: var(--accent-color);
+  --link: var(--accent-color);
+  --success: var(--green);
+  --warning: var(--orange);
+  --critical: var(--red);
+  --info: var(--blue);
+  --disabled: var(--tertiary);
+  --app-chrome-bg: var(--window);
+
+  --rgb-primary: var(--rgb-accent);
+  --rgb-info: var(--rgb-blue);
+  --rgb-success: var(--rgb-green);
+  --rgb-warning: var(--rgb-orange);
+  --rgb-danger: var(--rgb-red);
+
+  --bg-2: var(--content);
+  --bg-3: var(--fill-hex);
+  --line: var(--separator-hex);
+  --muted: var(--secondary);
+  --accent: var(--accent-color);
+  --accent-dim: var(--accent-soft);
+  --on-accent: var(--on-accent-color);
+  --danger: var(--red);
+  --danger-dim: rgba(var(--rgb-red), 0.14);
+  --on-cat: #ffffff;
+  /* 照片的底一律是深色畫布: 照片本身才是主角, 底色不該跟著主題走。 */
+  --thumb-bg: var(--canvas);
+
+  /* 舊的 cffy 名字（統計圖表的配色、少數樣式還在用）接到系統色。 */
+  --cffy-theme-light-a0: #ffffff;
+  --cffy-theme-dark-a0: #000000;
+  --cffy-theme-primary-a0: var(--accent-color);
+  --cffy-theme-primary-a10: var(--accent-hover);
+  --cffy-theme-primary-a20: var(--accent-color);
+  --cffy-theme-primary-a30: var(--slider-thumb);
+  --cffy-theme-primary-a40: var(--purple);
+  --cffy-theme-primary-a50: var(--slider-thumb-hover);
+  --cffy-theme-surface-a0: var(--window);
+  --cffy-theme-surface-a10: var(--content);
+  --cffy-theme-surface-a20: var(--fill-hex);
+  --cffy-theme-surface-a30: var(--separator-hex);
+  --cffy-theme-surface-a40: var(--tertiary);
+  --cffy-theme-surface-a50: var(--gray);
+  --cffy-theme-success-a0: var(--green);
+  --cffy-theme-success-a10: var(--teal);
+  --cffy-theme-success-a20: var(--green);
+  --cffy-theme-warning-a0: var(--orange);
+  --cffy-theme-warning-a10: var(--yellow);
+  --cffy-theme-warning-a20: var(--orange);
+  --cffy-theme-danger-a0: var(--red);
+  --cffy-theme-danger-a10: var(--red);
+  --cffy-theme-danger-a20: var(--red);
+  --cffy-theme-info-a0: var(--blue);
+  --cffy-theme-info-a10: var(--teal);
+  --cffy-theme-info-a20: var(--blue);
 }

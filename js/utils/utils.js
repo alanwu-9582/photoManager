@@ -8,6 +8,7 @@ const ICON_NAMES = new Set([
   "image", "chart", "layers", "sliders", "crop", "frame", "palette", "rotate",
   "upload", "download", "folder", "plus", "trash",
   "rotate-left", "rotate-right", "flip-h", "flip-v", "reset",
+  "sun", "moon", "monitor", "gear", "group", "sliders-2",
 ]);
 
 /** 以獨立 SVG 檔作為遮罩，讓圖示沿用文字顏色。未知名稱回傳空字串。 */

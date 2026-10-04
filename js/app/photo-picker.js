@@ -59,9 +59,35 @@ export function photoPicker({ onPick }) {
       photoId: origin.source === "library" ? origin.photo?.id || null : null,
     };
     onPick(file, origin);
+    paintHandoff();
   };
 
   input.addEventListener("change", () => { take(input.files[0]); input.value = ""; });
+
+  /* ---- 接力的提示（規範 §9.2） ----
+     某個工具按了「暫存」之後換到別的工具, 這裡會出現一條小註記說明現在編輯的
+     其實是上一個工具的結果, 旁邊一顆「改回原始」可以退回去。 */
+  const handoff = el("div", { class: "picker-note", hidden: true });
+
+  function paintHandoff() {
+    const ep = state.editorPhoto;
+    if (!ep || !ep.stashed || !ep.source) { handoff.hidden = true; return; }
+    handoff.hidden = false;
+    handoff.replaceChildren(
+      el("span", {}, `正在編輯「${ep.source}」的結果`),
+      el("button", {
+        type: "button", class: "btn btn-sm btn-ghost",
+        onclick: async () => {
+          const original = ep.originFile
+            || (ep.photoId ? await PMLibrary.getFile(
+              PMLibrary.photos.find((p) => p.id === ep.photoId) || {}).catch(() => null) : null);
+          if (!original) { notify.warning("找不到原始照片"); return; }
+          state.editorPhoto = null;
+          take(original, { source: "external" });
+        },
+      }, "改回原始"),
+    );
+  }
 
   const node = el("div", { class: "picker" },
     el("button", {
@@ -71,6 +97,7 @@ export function photoPicker({ onPick }) {
       type: "button", class: "btn btn-sm btn-ghost", onclick: () => pickFromLibrary(take),
     }, el("span", { class: "btn-ico", html: icon("image", { size: "14px" }) }), "已載入的照片"),
     input,
+    handoff,
   );
 
   node.choose = () => input.click();
@@ -81,7 +108,14 @@ export function photoPicker({ onPick }) {
       const photo = state.editorPhoto.photoId
         ? PMLibrary.photos.find((item) => item.id === state.editorPhoto.photoId)
         : null;
-      take(state.editorPhoto.file, photo ? { source: "library", photo } : { source: "external" });
+      const stash = state.editorPhoto;
+      take(stash.file, photo ? { source: "library", photo } : { source: "external" });
+      // take() 會把 editorPhoto 換成「沒有暫存標記」的新的一份, 接力的資訊要補回去。
+      if (stash.stashed) {
+        state.editorPhoto = { ...state.editorPhoto, stashed: true, source: stash.source,
+          originFile: stash.originFile || null };
+        paintHandoff();
+      }
       return true;
     }
     const photo = PMLibrary.photos.find((item) => item.id === state.selectedId);

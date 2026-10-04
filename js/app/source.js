@@ -9,26 +9,40 @@ import { notify } from "../ui/notifications.js";
 import { confirmDialog, alertDialog } from "./dialog.js";
 import { state, Marks, fmtBytes, emitLibraryChange } from "./state.js";
 import { rememberFolder, loadLastFolder, ensureAccess } from "./recent-folder.js";
+import { renderStatus } from "./shell.js";
 
 const $ = (id) => document.getElementById(id);
 
-/* ---------- 進度列 ---------- */
+/* ---------- 狀態列（視窗底部那一條） ----------
+   規範 §6.1: 來源 · 數量 · 狀態在左邊, 進行中的工作與進度條在右邊。
+   進度不再飄在內容中間, 頁面就不會因為它出現而跳動。 */
+function job(text, pct) {
+  const label = $("statusJob");
+  const track = $("statusTrack");
+  if (!label || !track) return;
+  if (text == null) {
+    label.hidden = true;
+    track.hidden = true;
+    $("statusFill").style.width = "0%";
+    return;
+  }
+  label.hidden = false;
+  label.textContent = text;
+  track.hidden = pct == null;
+  if (pct != null) $("statusFill").style.width = pct + "%";
+}
+
 export function showProgress(done, total, label) {
-  $("progressWrap").classList.add("active");
   const pct = total ? Math.round((done / total) * 100) : 0;
-  $("progressFill").style.width = pct + "%";
-  $("progressLabel").textContent = `${label || "處理中"}… ${done} / ${total}（${pct}%）`;
+  job(`${label || "處理中"}… ${done} / ${total}`, pct);
 }
 
 export function showProgressText(text) {
-  $("progressWrap").classList.add("active");
-  $("progressFill").style.width = "100%";
-  $("progressLabel").textContent = text;
+  job(text, null);
 }
 
 export function hideProgress() {
-  $("progressWrap").classList.remove("active");
-  $("progressFill").style.width = "0%";
+  job(null);
 }
 
 /** 換來源前先把畫面上的 <img> 清掉, 否則舊的 objectURL 被回收後瀏覽器會去撈已失效的 blob。 */
@@ -47,6 +61,7 @@ function statCell(label, value) {
 }
 
 export function renderSourceInfo() {
+  renderStatus();
   const stats = $("sourceStats");
   if (!stats) return;
   const s = PMLibrary.stats();

@@ -84,6 +84,7 @@ const PMLibrary = (function () {
             infoState: 'idle',     // idle | done | error
             thumbUrl: null,
             thumbState: 'idle',    // idle | loading | done | error
+            dhash: null,           // 差異雜湊（相似照片分組用）, 產生縮圖時順便算
             catId: null,
             organized: null,       // {folder, action} 已實際搬移/複製過
             _p: null,
@@ -168,14 +169,55 @@ const PMLibrary = (function () {
         throw new Error('照片沒有可用的來源：' + photo.name);
     }
 
+    /* ---------- 差異雜湊（相似照片分組用） ---------- */
+    /**
+     * dHash: 縮成 9x8 的灰階, 比較左右相鄰兩格誰亮, 得到 64 個位元。
+     * 構圖幾乎一樣的兩張照片, 位元差異會很小 —— 挑連拍、挑同一個構圖時就靠它。
+     * 回傳 8 個位元組（Uint8Array）, 位元運算在 JS 只有 32 位元, 拆開比較安全。
+     */
+    function dhashOf(bmp) {
+        const c = document.createElement('canvas');
+        c.width = 9;
+        c.height = 8;
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(bmp, 0, 0, 9, 8);
+        const d = ctx.getImageData(0, 0, 9, 8).data;
+        const out = new Uint8Array(8);
+        for (let y = 0; y < 8; y++) {
+            let bits = 0;
+            for (let x = 0; x < 8; x++) {
+                const a = (y * 9 + x) * 4;
+                const b = (y * 9 + x + 1) * 4;
+                const la = d[a] * 0.299 + d[a + 1] * 0.587 + d[a + 2] * 0.114;
+                const lb = d[b] * 0.299 + d[b + 1] * 0.587 + d[b + 2] * 0.114;
+                if (la > lb) bits |= 1 << x;
+            }
+            out[y] = bits;
+        }
+        return out;
+    }
+
+    /** 兩個 dHash 差幾個位元。 */
+    function hamming(a, b) {
+        if (!a || !b) return 64;
+        let n = 0;
+        for (let i = 0; i < 8; i++) {
+            let v = a[i] ^ b[i];
+            while (v) { n += v & 1; v >>= 1; }
+        }
+        return n;
+    }
+
     /* ---------- 縮圖 ---------- */
-    async function makeThumbBlob(file) {
+    async function makeThumbBlob(file, photo) {
         const bmp = await PMImage.decodeBitmap(file,
             { imageOrientation: 'none', resizeWidth: 480, resizeQuality: 'medium' });
         const canvas = document.createElement('canvas');
         canvas.width = bmp.width;
         canvas.height = bmp.height;
         canvas.getContext('2d').drawImage(bmp, 0, 0);
+        // 圖已經解好了, 順手把 dHash 算起來 —— 「相似照片」分組不必再讀一次檔。
+        if (photo) { try { photo.dhash = dhashOf(bmp); } catch (e) { photo.dhash = null; } }
         bmp.close();
         return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
     }
@@ -219,7 +261,7 @@ const PMLibrary = (function () {
             // 優先從原圖縮放，畫質比相機內嵌的低解析 EXIF 縮圖好。
             // 所有處理都在瀏覽器本機完成；僅在瀏覽器無法解碼原圖（例如部分 TIFF）時後備使用 EXIF 縮圖。
             let blob = null;
-            try { blob = await makeThumbBlob(file); }
+            try { blob = await makeThumbBlob(file, photo); }
             catch (e) { console.warn('無法從原圖產生縮圖，改用 EXIF 縮圖：', photo.name, e); }
             if (!blob && parsed) blob = parsed.thumbBlob;
             if (blob) {
@@ -348,7 +390,7 @@ const PMLibrary = (function () {
     return {
         lib,
         supportsFolder, pickFolder, openFolderHandle, rescan, addFiles,
-        getFile, ensureThumb, ensureInfo, scanAllInfo, fullUrl, pinFull, preloadAround,
+        getFile, ensureThumb, ensureInfo, scanAllInfo, fullUrl, pinFull, preloadAround, hamming,
         clear, stats, natCompare,
         get photos() { return lib.photos; },
         get mode() { return lib.mode; },

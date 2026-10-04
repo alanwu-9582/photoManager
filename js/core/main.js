@@ -8,9 +8,14 @@ import { startRouter, renderNavigation } from "./router.js";
 import { initSourceBar } from "../app/source.js";
 import { emitLibraryChange, saveMarks } from "../app/state.js";
 import { notify } from "../ui/notifications.js";
+import { initTheme } from "../app/theme.js";
+import { initShell } from "../app/shell.js";
 
+// 主題要最先定: 晚一步就會先閃一下深色再變成淺色。
+initTheme();
 initSidebarToggle();
 renderNavigation();
+initShell();
 
 PMCategories.onChange(() => {
   // 匯入或重設之後, 指向已不存在分類的標記要清掉, 否則會變成數得到卻整理不到的幽靈標記。

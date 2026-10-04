@@ -32,6 +32,8 @@ export const state = {
   columns: 4,
   /** 照片檢視的篩選條件: {field, value, mode:"include"|"exclude"} */
   filters: [],
+  /** 照片檢視怎麼分組（js/app/grouping.js 的 GROUPS）。none = 不分組。 */
+  groupBy: "none",
   manageColumns: 3,
   selectedId: null,
   // 編輯工具之間共用的目前照片。外部上傳也可在工具間延續，但不會改 selectedId。

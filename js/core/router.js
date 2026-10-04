@@ -33,6 +33,10 @@ export const ROUTES = {
     fragment: "pages/tool.html", module: "../pages/tool.js", tool: "photo-edit",
     label: "裁切旋轉", icon: "crop", nav: true, group: "照片編輯",
   },
+  adjust: {
+    fragment: "pages/tool.html", module: "../pages/tool.js", tool: "adjust",
+    label: "調整", icon: "sliders-2", nav: true, group: "照片編輯",
+  },
   frame: {
     fragment: "pages/tool.html", module: "../pages/tool.js", tool: "exif-frame",
     label: "EXIF 相框", icon: "frame", nav: true, group: "照片編輯",
@@ -40,6 +44,10 @@ export const ROUTES = {
   palette: {
     fragment: "pages/tool.html", module: "../pages/tool.js", tool: "palette-card",
     label: "照片色卡", icon: "palette", nav: true, group: "照片編輯",
+  },
+  preferences: {
+    fragment: "pages/preferences.html", module: "../pages/preferences.js",
+    label: "設定", icon: "gear", nav: true, group: "其他",
   },
   "not-found": {
     fragment: "pages/not-found.html", module: "../pages/not-found.js",
